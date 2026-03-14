@@ -4,3 +4,4 @@
 01,ADMIN,1234,Administrador
 02,JULIANA,1234,Secretaria
 02,PEDRO,1234,Medico
+03,admin,admin,Administrador
