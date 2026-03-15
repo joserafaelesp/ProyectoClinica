@@ -127,42 +127,40 @@ public class ListarPaciente extends JDialog {
 				borrar = new JButton("Borrar");
 				borrar.setEnabled(false);
 				borrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
+				    public void actionPerformed(ActionEvent e) {
+				        int index = table.getSelectedRow();
+				        
+				        if (index >= 0) {
+				            String codigoPaciente = table.getValueAt(index, 0).toString(); // En este caso, la Cédula
+				            selected = Clinica.getInstance().obtenerPacienteById(codigoPaciente);
 
+				            if (selected != null) {
+				                int confirmacion = JOptionPane.showConfirmDialog(null, 
+				                        "¿Seguro que desea borrar al paciente con Cédula: " + codigoPaciente + "?",
+				                        "Confirmación", JOptionPane.YES_NO_OPTION);
 
-						int confirmacion = JOptionPane.showConfirmDialog(null, "¿Seguro que desea borrar este Paciente?",
-								"Confirmación", JOptionPane.YES_NO_OPTION);
-
-						if (confirmacion == JOptionPane.YES_OPTION) {
-							if (selected != null) {
-								//archivoManager.(selected);
-								cargarDatosDesdeArchivo("Medico.txt");
-								borrar.setEnabled(false);
-							} 
-						}
-						//archivoManager.borrarUsuario(selected);
-
-					}
-				});
-				borrar.setActionCommand("OK");
-				buttonPane.add(borrar);
-				getRootPane().setDefaultButton(borrar);
-			}
-			{
-				JButton cancelButton = new JButton("Salir");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+				                if (confirmacion == JOptionPane.YES_OPTION) {
+				                    
+				                    // 1. Llamamos al método que vamos a crear en archivoManager
+				                    archivoManager.borrarPaciente(selected);
+				                    
+				                    // 2. ¡Corregido! Ahora recarga el archivo correcto
+				                    cargarDatosDesdeArchivo("Paciente.txt"); 
+				                    
+				                    // 3. Reiniciamos la interfaz
+				                    borrar.setEnabled(false);
+				                    selected = null; 
+				                    
+				                    JOptionPane.showMessageDialog(null, "Paciente eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+				                }
+				            }
+				        }
+				    }
+				});		
 			}
 		}
-
-		cargarDatosDesdeArchivo("Paciente.txt");
 	}
-
+		
 	private void cargarDatosDesdeArchivo(String archivo) {
 		ArrayList<Paciente> listaPaciente = archivoManager.leerPacientes();
 		DefaultTableModel model = (DefaultTableModel) table.getModel();

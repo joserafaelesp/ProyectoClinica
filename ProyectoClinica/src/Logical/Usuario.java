@@ -64,4 +64,12 @@ public class Usuario {
 		return "Medico".equals(Rol);
 	}
 
+	public boolean equals(Object obj) {
+	    if (this == obj) return true;
+	    if (obj == null || getClass() != obj.getClass()) return false;
+	    
+	    Usuario otroUsuario = (Usuario) obj;
+	    // Compara usando el atributo que sea único, por ejemplo, el idUsuario
+	    return this.idUsuario.equals(otroUsuario.getIdUsuario()); 
+	}
 }

@@ -144,8 +144,9 @@ public class Clinica {
 	    }
 	    
 	    public void agregarPaciente(Paciente paciente) {
-	    	misPaciente.add(paciente);
-	    	archivoManager.guardarPacienteEnArchivo(paciente);
+	        misPaciente.add(paciente);
+	        // Cambiamos 'paciente' por la lista completa 'misPaciente'
+	        archivoManager.GuardarTodosLosPacientes(misPaciente); 
 	    }
 	    
 	    public void agregarVacuna(Vacuna vac) {

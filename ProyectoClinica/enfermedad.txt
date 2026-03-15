@@ -8,3 +8,4 @@ Enfermedad - 3,wwed,wwdw,deewewd,null
 Enfermedad - 1,swws,dewdw,wdd,null
 Enfermedad - 2,dwwd,qss,xsc,null
 Enfermedad - 1,qxw,qaaq,zqqz,null
+Enfermedad - 1,Dengue,,,null

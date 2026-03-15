@@ -121,47 +121,71 @@ public class VerMisUsuarios extends JDialog {
 		btnBuscar.setBounds(666, 28, 38, 22);
 		OpcionesPanel.add(btnBuscar);
 		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setBackground(SystemColor.activeCaption);
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				borrar = new JButton("Borrar");
-				borrar.setEnabled(false);
-				borrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
+			
+				JPanel buttonPane = new JPanel();
+				buttonPane.setBackground(SystemColor.activeCaption);
+				buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+				getContentPane().add(buttonPane, BorderLayout.SOUTH);
+				{
+					borrar = new JButton("Borrar");
+					borrar.setEnabled(false);
+					
+					// Lógica principal de borrado
+					borrar.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							int index = table.getSelectedRow();
+							
+							if (index >= 0) {
+								// 1. Obtener el ID de la tabla
+								String codigoUsuario = table.getValueAt(index, 0).toString();
+								
+								// 2. Buscar el objeto en la lista lógica
+								selected = Clinica.getInstance().buscarUsuarioPorCodigo(codigoUsuario);
 
+								if (selected != null) {
+									int confirmacion = JOptionPane.showConfirmDialog(null, 
+											"¿Seguro que desea borrar al usuario con ID: " + codigoUsuario + "?",
+											"Confirmación", JOptionPane.YES_NO_OPTION);
 
-						int confirmacion = JOptionPane.showConfirmDialog(null, "¿Seguro que desea borrar este usuario?",
-								"Confirmación", JOptionPane.YES_NO_OPTION);
-
-						if (confirmacion == JOptionPane.YES_OPTION) {
-							if (selected != null) {
-								archivoManager.borrarUsuario(selected);
-								cargarDatosDesdeArchivo("usuarios.txt");
-								borrar.setEnabled(false);
-							} 
+									if (confirmacion == JOptionPane.YES_OPTION) {
+										
+										// 3. Borrar del archivo (y asegúrate de que también se borre de Clinica.getInstance() si tienes una lista en memoria)
+										archivoManager.borrarUsuario(selected);
+										
+										// 4. Recargar los datos visuales
+										cargarDatosDesdeArchivo("usuarios.txt");
+										
+										// 5. Reiniciar la UI y la variable
+										borrar.setEnabled(false);
+										selected = null; 
+										
+										JOptionPane.showMessageDialog(null, "Usuario eliminado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+									}
+								} else {
+									JOptionPane.showMessageDialog(null, "Error: No se encontró el usuario en la base de datos lógica.", "Error", JOptionPane.ERROR_MESSAGE);
+								}
+							}
 						}
-					}
-				});
-				borrar.setActionCommand("OK");
-				buttonPane.add(borrar);
-				getRootPane().setDefaultButton(borrar);
+					});
+					borrar.setActionCommand("OK");
+					buttonPane.add(borrar);
+					getRootPane().setDefaultButton(borrar);
+				}
+				{
+					JButton cancelButton = new JButton("Salir");
+					cancelButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							dispose();
+						}
+					});
+					cancelButton.setActionCommand("Cancel");
+					buttonPane.add(cancelButton);
+				}
 			}
-			{
-				JButton cancelButton = new JButton("Salir");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
+
+			cargarDatosDesdeArchivo("usuarios.txt");
 		}
 
-		cargarDatosDesdeArchivo("usuarios.txt");
-	}
 
 	private void cargarDatosDesdeArchivo(String archivo) {
 		ArrayList<Usuario> listaUsuarios = archivoManager.LeerUsuario();

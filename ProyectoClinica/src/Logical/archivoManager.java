@@ -26,20 +26,21 @@ public class archivoManager {
 
 	// Usuarios 
 
+	// Reemplaza tu método GuardarUsuarios con este:
 	public static void GuardarUsuarios(ArrayList<Usuario> usuarios) {
-		try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(FILE_PATH, true)))) {
-			for (Usuario usuario : usuarios) {
-				writer.write(usuario.getIdUsuario() + ","
-						+ usuario.getNombreUser() + ","
-						+ usuario.getPassword() + ","
-						+ usuario.getRol());
-					writer.println();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	    // Cambiamos 'true' a 'false' para SOBRESCRIBIR el archivo, no añadir.
+	    try(PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(FILE_PATH, false)))) {
+	        for (Usuario usuario : usuarios) {
+	            writer.write(usuario.getIdUsuario() + ","
+	                    + usuario.getNombreUser() + ","
+	                    + usuario.getPassword() + ","
+	                    + usuario.getRol());
+	            writer.println();
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
 	}
-
 	public static ArrayList<Usuario> LeerUsuario() {
 		ArrayList<Usuario> usuarios = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
@@ -57,15 +58,43 @@ public class archivoManager {
 		return usuarios;
 	}
 
-	public static void borrarUsuario(Usuario usuario) {
-		ArrayList<Usuario> listaUsuarios = LeerUsuario();
+	public static void borrarUsuario(Usuario usuarioAborrar) {
+	    if (usuarioAborrar == null) {
+	        System.out.println("Error: El usuario que llegó para borrar es NULL.");
+	        return;
+	    }
 
-		if (usuario != null) {
-			listaUsuarios.remove(usuario);
-			GuardarUsuarios(listaUsuarios);
-		}
+	    ArrayList<Usuario> listaUsuarios = LeerUsuario();
+	    System.out.println("Intentando borrar el ID: '" + usuarioAborrar.getIdUsuario() + "'");
+
+	    // 1. Buscar y remover de la lista
+	    boolean encontrado = false;
+	    for (int i = 0; i < listaUsuarios.size(); i++) {
+	        // Usamos trim() para quitar espacios invisibles y comparamos
+	        if (listaUsuarios.get(i).getIdUsuario().trim().equalsIgnoreCase(usuarioAborrar.getIdUsuario().trim())) {
+	            listaUsuarios.remove(i);
+	            encontrado = true;
+	            System.out.println("¡Éxito! Usuario removido de la memoria.");
+	            break; // Salimos del bucle
+	        }
+	    }
+
+	    if (!encontrado) {
+	        System.out.println("Fallo: No se encontró ningún usuario con ese ID en el archivo txt.");
+	    }
+
+	    // 2. FORZAR LA SOBRESCRITURA DEL ARCHIVO (false)
+	    // Lo hacemos directo aquí para que no haya riesgo de llamar a un método viejo
+	    try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(FILE_PATH, false)))) {
+	        for (Usuario u : listaUsuarios) {
+	            writer.write(u.getIdUsuario() + "," + u.getNombreUser() + "," + u.getPassword() + "," + u.getRol());
+	            writer.println();
+	        }
+	        System.out.println("Archivo 'usuarios.txt' sobrescrito correctamente. Total de usuarios ahora: " + listaUsuarios.size());
+	    } catch (IOException e) {
+	        System.out.println("Error fatal al escribir el archivo: " + e.getMessage());
+	    }
 	}
-
 	// medicos 
 	
 	public static void borrarMedico(Medico medico) {
@@ -107,14 +136,40 @@ public class archivoManager {
 
 	// Paciente 
 
-	public static void guardarPacienteEnArchivo(Paciente paciente) {
-		try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(FILE_PATH2, true)))) {
-			writer.println(paciente.toString()); 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	// 1. Método para sobrescribir todo el archivo de pacientes (Nota el 'false')
+	public static void GuardarTodosLosPacientes(ArrayList<Paciente> pacientes) {
+	    try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(FILE_PATH2, false)))) {
+	        for (Paciente p : pacientes) {
+	            // Asumo que tu método toString() de Paciente ya genera la línea separada por comas, 
+	            // igual que como lo usas en guardarPacienteEnArchivo
+	            writer.println(p.toString()); 
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
 	}
 
+	// 2. Método para buscar por cédula y borrar
+	public static void borrarPaciente(Paciente pacienteABorrar) {
+	    if (pacienteABorrar == null) return;
+
+	    ArrayList<Paciente> listaPacientes = leerPacientes();
+	    boolean encontrado = false;
+
+	    for (int i = 0; i < listaPacientes.size(); i++) {
+	        // Buscamos comparando la Cédula (quitando espacios por si acaso)
+	        if (listaPacientes.get(i).getCedula().trim().equalsIgnoreCase(pacienteABorrar.getCedula().trim())) {
+	            listaPacientes.remove(i);
+	            encontrado = true;
+	            break;
+	        }
+	    }
+
+	    if (encontrado) {
+	        // Si lo borramos de la lista, sobrescribimos el archivo para guardar los cambios
+	        GuardarTodosLosPacientes(listaPacientes);
+	    }
+	}
 	public static ArrayList<Paciente> leerPacientes() {
 		ArrayList<Paciente> pacientes = new ArrayList<>();
 
