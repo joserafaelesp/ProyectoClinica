@@ -2,33 +2,28 @@ package Visual;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
 import Logical.Medico;
-import Logical.Usuario;
-import Logical.archivoManager;
-
-import javax.swing.JScrollBar;
-import javax.swing.BoxLayout;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import java.awt.SystemColor;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.ImageIcon;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.awt.event.ActionEvent;
-import javax.swing.ScrollPaneConstants;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class ListarMedico extends JDialog {
 
@@ -36,8 +31,8 @@ public class ListarMedico extends JDialog {
 	private JTable table;
 	private JTextField txtNombre;
 	private static DefaultTableModel model;
-	private static Object[] row;
-	private JButton borrar;
+	private JButton btnBorrar;
+	private JButton btnModificar;
 	private Medico selected = null;
 
 	public static void main(String[] args) {
@@ -50,12 +45,9 @@ public class ListarMedico extends JDialog {
 		}
 	}
 
-	/**
-	 * Create the dialog.
-	 */
 	public ListarMedico() {
 		setTitle("Ver Medicos");
-		setBounds(100, 100, 750, 433);
+		setBounds(100, 100, 850, 500);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(SystemColor.window);
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -63,7 +55,7 @@ public class ListarMedico extends JDialog {
 		contentPanel.setLayout(null);
 
 		JPanel ListPanel = new JPanel();
-		ListPanel.setBounds(10, 75, 714, 275);
+		ListPanel.setBounds(10, 75, 814, 350);
 		contentPanel.add(ListPanel);
 		ListPanel.setLayout(new BorderLayout(0, 0));
 
@@ -71,21 +63,21 @@ public class ListarMedico extends JDialog {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		ListPanel.add(scrollPane, BorderLayout.CENTER);
 
-
-		String[] headear = {"CEDULA","NOMBRE","GENERO","FECHA","TELEFONO", "VIVIENDA", "IDMEDICO", "ESPECIALIDAD"};
+		String[] header = {"Cedula", "Nombre", "Genero", "Fecha Nac", "Telefono", "ID Medico", "Especialidad"};
 		model = new DefaultTableModel();
-		model.setColumnIdentifiers(headear);
+		model.setColumnIdentifiers(header);
 		table = new JTable();
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				int index = table.getSelectedRow();
-				if(index >= 0) {
-					borrar.setEnabled(true);
-
-					String codigoMedico = table.getValueAt(index, 0).toString();
-					selected = Clinica.getInstance().obtenerMedicoById(codigoMedico);
-					System.out.println("Medico seleccionado para borrar: " + selected);
+				if (index >= 0) {
+					btnBorrar.setEnabled(true);
+					btnModificar.setEnabled(true);
+					// OBTENER EL ID MEDICO (columna 5)
+					String idMedico = table.getValueAt(index, 5).toString();
+					selected = Clinica.getInstance().obtenerMedicoById(idMedico);
+					System.out.println("Médico seleccionado: " + selected.getNombre() + " - ID: " + idMedico);
 				}
 			}
 		});
@@ -95,12 +87,12 @@ public class ListarMedico extends JDialog {
 
 		JPanel OpcionesPanel = new JPanel();
 		OpcionesPanel.setBackground(SystemColor.scrollbar);
-		OpcionesPanel.setBounds(10, 11, 714, 59);
+		OpcionesPanel.setBounds(10, 11, 814, 59);
 		contentPanel.add(OpcionesPanel);
 		OpcionesPanel.setLayout(null);
 
 		txtNombre = new JTextField();
-		txtNombre.setBounds(53, 28, 603, 20);
+		txtNombre.setBounds(53, 28, 703, 20);
 		OpcionesPanel.add(txtNombre);
 		txtNombre.setColumns(10);
 
@@ -119,81 +111,101 @@ public class ListarMedico extends JDialog {
 			}
 		});
 		btnBuscar.setIcon(new ImageIcon(ListarMedico.class.getResource("/imagenes/busqueda-de-lupa (1).png")));
-		btnBuscar.setBounds(666, 28, 38, 22);
+		btnBuscar.setBounds(766, 28, 38, 22);
 		OpcionesPanel.add(btnBuscar);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setBackground(SystemColor.activeCaption);
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				borrar = new JButton("Borrar");
-				borrar.setEnabled(false);
-				borrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-
-
-						int confirmacion = JOptionPane.showConfirmDialog(null, "¿Seguro que desea borrar este usuario?",
-								"Confirmación", JOptionPane.YES_NO_OPTION);
-
-						if (confirmacion == JOptionPane.YES_OPTION) {
-							if (selected != null) {
-								//archivoManager.(selected);
-								cargarDatosDesdeArchivo("Medico.txt");
-								borrar.setEnabled(false);
-							} 
-						}
-						//archivoManager.borrarUsuario(selected);
-
-					}
-				});
-				borrar.setActionCommand("OK");
-				buttonPane.add(borrar);
-				getRootPane().setDefaultButton(borrar);
+		
+		JPanel buttonPane = new JPanel();
+		buttonPane.setBackground(SystemColor.activeCaption);
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		btnModificar = new JButton("Modificar");
+		btnModificar.setEnabled(false);
+		btnModificar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected != null) {
+					RegistrarGeneral modificar = new RegistrarGeneral(selected, 0);
+					modificar.setModal(true);
+					modificar.setVisible(true);
+					// Recargar datos después de modificar
+					cargarDatos();
+					btnBorrar.setEnabled(false);
+					btnModificar.setEnabled(false);
+					selected = null;
+				}
 			}
-			{
-				JButton cancelButton = new JButton("Salir");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
+		});
+		buttonPane.add(btnModificar);
+		
+		btnBorrar = new JButton("Borrar");
+		btnBorrar.setEnabled(false);
+		btnBorrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected != null) {
+					int confirmacion = JOptionPane.showConfirmDialog(null, 
+							"¿Seguro que desea borrar al médico " + selected.getNombre() + " con ID " + selected.getIdMedico() + "?",
+							"Confirmación", JOptionPane.YES_NO_OPTION);
+					if (confirmacion == JOptionPane.YES_OPTION) {
+						Clinica.getInstance().borrarMedico(selected.getIdMedico());
+						// Recargar datos después de borrar
+						cargarDatos();
+						btnBorrar.setEnabled(false);
+						btnModificar.setEnabled(false);
+						selected = null;
+						JOptionPane.showMessageDialog(null, "Médico eliminado correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+				}
 			}
-		}
+		});
+		buttonPane.add(btnBorrar);
+		
+		JButton cancelButton = new JButton("Salir");
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		buttonPane.add(cancelButton);
 
-		cargarDatosDesdeArchivo("Medico.txt");
+		cargarDatos();
 	}
 
-	private void cargarDatosDesdeArchivo(String archivo) {
-		ArrayList<Medico> listaMedicos = archivoManager.leerMedico();
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
-
+	private void cargarDatos() {
+		ArrayList<Medico> listaMedicos = Clinica.getInstance().getMisMedico();
 		model.setRowCount(0);
-
 		for (Medico medico : listaMedicos) {
-			model.addRow(new Object[]{medico.getCedula(), medico.getNombre(), medico.getGenero(), medico.getFechaNacimiento(), medico.getTelefono(), medico.getViviend(), medico.getIdMedico(), medico.getEspecialidad()});
+			model.addRow(new Object[]{
+				medico.getCedula(), 
+				medico.getNombre(), 
+				medico.getGenero(), 
+				medico.getFechaNacimiento(), 
+				medico.getTelefono(), 
+				medico.getIdMedico(), 
+				medico.getEspecialidad()
+			});
 		}
+		System.out.println("Médicos cargados: " + listaMedicos.size());
 	}
 
 	private void buscarPorNombre() {
 		String nombreABuscar = txtNombre.getText().trim();
-		boolean medicoEncontrado = false;
-
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		boolean encontrado = false;
 		model.setRowCount(0);
-
-		ArrayList<Medico> listaMedicos = archivoManager.leerMedico();
+		ArrayList<Medico> listaMedicos = Clinica.getInstance().getMisMedico();
 
 		for (Medico medico : listaMedicos) {
-			if (medico.getNombre().equalsIgnoreCase(nombreABuscar)) {
-				model.addRow(new Object[]{ medico.getIdMedico(),medico.getNombre(),medico.getEspecialidad(),medico.getGenero()});
-				medicoEncontrado = true;
+			if (medico.getNombre().toLowerCase().contains(nombreABuscar.toLowerCase())) {
+				model.addRow(new Object[]{
+					medico.getCedula(), medico.getNombre(), medico.getGenero(), 
+					medico.getFechaNacimiento(), medico.getTelefono(), 
+					medico.getIdMedico(), medico.getEspecialidad()
+				});
+				encontrado = true;
 			}
 		}
-		if (!medicoEncontrado) {
-			JOptionPane.showMessageDialog(null, "Error No existe", "Busqueda", JOptionPane.ERROR_MESSAGE);
+		if (!encontrado && !nombreABuscar.isEmpty()) {
+			JOptionPane.showMessageDialog(null, "No se encontraron médicos con ese nombre", "Búsqueda", JOptionPane.INFORMATION_MESSAGE);
+			cargarDatos();
 		}
 	}
 }

@@ -1,2 +1,1 @@
-2124234342,pablito,Masculino,Thu Dec 07 12:30:34 GMT-04:00 2023,848974554114,null,,Paciente - 1,informacion0000awqewqwe1,null
-0492521454714,Pablo,Masculino,Thu Dec 07 14:15:51 GMT-04:00 2023,8098248474,Vivienda - 1,Santiago,8095553333,,Paciente - 1,tiene cancer,null
+10,ALEX,Masculino,2004-03-23,809320,Vivienda - 1,Paciente - 1,18004445678,null

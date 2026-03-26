@@ -19,14 +19,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
-import Logical.Usuario;
 import Logical.Vivienda;
-import Logical.archivoManager;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 
 public class ListarVivienda extends JDialog {
@@ -34,8 +31,8 @@ public class ListarVivienda extends JDialog {
 	private JTable table;
 	private JTextField txtID;
 	private static DefaultTableModel model;
-	private static Object[] row;
-	private JButton borrar;
+	private JButton btnBorrar;
+	private JButton btnModificar;
 	private Vivienda selected = null;
 
 	public static void main(String[] args) {
@@ -48,11 +45,8 @@ public class ListarVivienda extends JDialog {
 		}
 	}
 
-	/**
-	 * Create the dialog.
-	 */
 	public ListarVivienda() {
-		setTitle("Ver Vivienda");
+		setTitle("Ver Viviendas");
 		setBounds(100, 100, 750, 433);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(SystemColor.window);
@@ -69,21 +63,19 @@ public class ListarVivienda extends JDialog {
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		ListPanel.add(scrollPane, BorderLayout.CENTER);
 
-
-		String[] headear = {"ID","Telefono","Direccion"};
+		String[] header = {"ID", "Teléfono", "Dirección"};
 		model = new DefaultTableModel();
-		model.setColumnIdentifiers(headear);
+		model.setColumnIdentifiers(header);
 		table = new JTable();
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				int index = table.getSelectedRow();
-				if(index >= 0) {
-					borrar.setEnabled(true);
-
+				if (index >= 0) {
+					btnBorrar.setEnabled(true);
+					btnModificar.setEnabled(true);
 					String idVivienda = table.getValueAt(index, 0).toString();
 					selected = Clinica.getInstance().obtenervivienda(idVivienda);
-					System.out.println("Usuario seleccionado para borrar: " + selected);
 				}
 			}
 		});
@@ -116,55 +108,66 @@ public class ListarVivienda extends JDialog {
 				buscarPorId();
 			}
 		});
-		btnBuscar.setIcon(new ImageIcon(VerMisUsuarios.class.getResource("/imagenes/busqueda-de-lupa (1).png")));
+		btnBuscar.setIcon(new ImageIcon(ListarVivienda.class.getResource("/imagenes/busqueda-de-lupa (1).png")));
 		btnBuscar.setBounds(666, 28, 38, 22);
 		OpcionesPanel.add(btnBuscar);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setBackground(SystemColor.activeCaption);
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				borrar = new JButton("Borrar");
-				borrar.setEnabled(false);
-				borrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-
-
-						int confirmacion = JOptionPane.showConfirmDialog(null, "¿Seguro que desea borrar esta vivienda?",
-								"Confirmación", JOptionPane.YES_NO_OPTION);
-
-						if (confirmacion == JOptionPane.YES_OPTION) {
-							
-						}
-
-					}
-				});
-				borrar.setActionCommand("OK");
-				buttonPane.add(borrar);
-				getRootPane().setDefaultButton(borrar);
+		
+		JPanel buttonPane = new JPanel();
+		buttonPane.setBackground(SystemColor.activeCaption);
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		btnModificar = new JButton("Modificar");
+		btnModificar.setEnabled(false);
+		btnModificar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected != null) {
+					RegistrarVivienda modificar = new RegistrarVivienda(selected, 0);
+					modificar.setModal(true);
+					modificar.setVisible(true);
+					cargarDatos();
+					btnBorrar.setEnabled(false);
+					btnModificar.setEnabled(false);
+				}
 			}
-			{
-				JButton cancelButton = new JButton("Salir");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
+		});
+		buttonPane.add(btnModificar);
+		
+		btnBorrar = new JButton("Borrar");
+		btnBorrar.setEnabled(false);
+		btnBorrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selected != null) {
+					int confirmacion = JOptionPane.showConfirmDialog(null, 
+							"¿Seguro que desea borrar la vivienda con ID: " + selected.getIdVivienda() + "?",
+							"Confirmación", JOptionPane.YES_NO_OPTION);
+					if (confirmacion == JOptionPane.YES_OPTION) {
+						Clinica.getInstance().borrarVivienda(selected.getIdVivienda());
+						cargarDatos();
+						btnBorrar.setEnabled(false);
+						btnModificar.setEnabled(false);
+						selected = null;
+						JOptionPane.showMessageDialog(null, "Vivienda eliminada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+				}
 			}
-		}
+		});
+		buttonPane.add(btnBorrar);
+		
+		JButton cancelButton = new JButton("Salir");
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		buttonPane.add(cancelButton);
 
-		cargarDatosDesdeArchivo("vivienda.txt");
+		cargarDatos();
 	}
 
-	private void cargarDatosDesdeArchivo(String archivo) {
-		ArrayList<Vivienda> listaVivienda = archivoManager.leerVivienda();
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
-
+	private void cargarDatos() {
+		ArrayList<Vivienda> listaVivienda = Clinica.getInstance().getMisViviendas();
 		model.setRowCount(0);
-
 		for (Vivienda vivienda : listaVivienda) {
 			model.addRow(new Object[]{vivienda.getIdVivienda(), vivienda.getTelefono(), vivienda.getDireccion()});
 		}
@@ -172,21 +175,19 @@ public class ListarVivienda extends JDialog {
 
 	private void buscarPorId() {
 		String idABuscar = txtID.getText().trim();
-		boolean viviendaEncontrado = false;
-
-		DefaultTableModel model = (DefaultTableModel) table.getModel();
+		boolean encontrado = false;
 		model.setRowCount(0);
+		ArrayList<Vivienda> listaVivienda = Clinica.getInstance().getMisViviendas();
 
-		ArrayList<Vivienda> listaViviendas = archivoManager.leerVivienda();
-
-		for (Vivienda vivienda : listaViviendas) {
-			if (vivienda.getIdVivienda().equalsIgnoreCase(idABuscar)) {
+		for (Vivienda vivienda : listaVivienda) {
+			if (vivienda.getIdVivienda().toLowerCase().contains(idABuscar.toLowerCase())) {
 				model.addRow(new Object[]{vivienda.getIdVivienda(), vivienda.getTelefono(), vivienda.getDireccion()});
-				viviendaEncontrado = true;
+				encontrado = true;
 			}
 		}
-		if (!viviendaEncontrado) {
-			JOptionPane.showMessageDialog(null, "Error No existe", "Busqueda", JOptionPane.ERROR_MESSAGE);
+		if (!encontrado && !idABuscar.isEmpty()) {
+			JOptionPane.showMessageDialog(null, "No se encontraron viviendas con ese ID", "Búsqueda", JOptionPane.INFORMATION_MESSAGE);
+			cargarDatos();
 		}
 	}
 }

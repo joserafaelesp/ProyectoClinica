@@ -11,7 +11,7 @@ public class Clinica {
 	private ArrayList<Consultas> misConsultas;
 	private ArrayList<Vacuna> misVacunas;
 	private ArrayList<Cita> misCitas;
-	private ArrayList<Usuario>misUsuarios;
+	private ArrayList<Usuario> misUsuarios;
 	private ArrayList<Enfermedad> misEnfermedades;
 	private ArrayList<Vivienda> misViviendas;
 	List<String> listaPacientesAsignados;
@@ -28,14 +28,19 @@ public class Clinica {
 	
 	public Clinica() {
 		super();
-		this.misMedico = new ArrayList<Medico>();
-		this.misPaciente = new ArrayList<Paciente>();
-		this.misConsultas = new ArrayList<Consultas>();
-		this.misVacunas = new ArrayList<Vacuna>();
-		this.misUsuarios = new ArrayList<Usuario>();
-		this.listaPacientesAsignados = new ArrayList();
-		this.misEnfermedades = new ArrayList<Enfermedad>();
-		this.misViviendas = new ArrayList<Vivienda>();
+		// Inicializar listas
+		this.misMedico = new ArrayList<>();
+		this.misPaciente = new ArrayList<>();
+		this.misConsultas = new ArrayList<>();
+		this.misVacunas = new ArrayList<>();
+		this.misCitas = new ArrayList<>();
+		this.misUsuarios = new ArrayList<>();
+		this.listaPacientesAsignados = new ArrayList<>();
+		this.misEnfermedades = new ArrayList<>();
+		this.misViviendas = new ArrayList<>();
+		
+		// Cargar TODOS los datos desde los archivos al iniciar
+		cargarTodosLosDatos();
 	}
 	
 	public static Clinica getInstance(){
@@ -43,273 +48,395 @@ public class Clinica {
 			clinica = new Clinica();
 		}		
 		return clinica;
-	} 
+	}
 	
-
+	// ==================== CARGAR TODOS LOS DATOS ====================
+	
+	private void cargarTodosLosDatos() {
+		misUsuarios = archivoManager.leerUsuarios();
+		misMedico = archivoManager.leerMedicos();
+		misPaciente = archivoManager.leerPacientes();
+		misVacunas = archivoManager.leerVacunas();
+		misEnfermedades = archivoManager.leerEnfermedades();
+		misViviendas = archivoManager.leerViviendas();
+		misConsultas = archivoManager.leerConsultas();
+		misCitas = archivoManager.leerCitas();
+		
+		// Actualizar generadores de código según los datos existentes
+		actualizarGeneradores();
+	}
+	
+	private void actualizarGeneradores() {
+		// Usuarios
+		int maxUser = 0;
+		for (Usuario u : misUsuarios) {
+			try {
+				String numStr = u.getIdUsuario().replace("User-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxUser) maxUser = num;
+			} catch (Exception e) {}
+		}
+		if (maxUser > 0) generadorCodigoUser = maxUser + 1;
+		
+		// Medicos
+		int maxMed = 0;
+		for (Medico m : misMedico) {
+			try {
+				String numStr = m.getIdMedico().replace("Medico-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxMed) maxMed = num;
+			} catch (Exception e) {}
+		}
+		if (maxMed > 0) generadorCodigoidMedico = maxMed + 1;
+		
+		// Pacientes
+		int maxPac = 0;
+		for (Paciente p : misPaciente) {
+			try {
+				String numStr = p.getIdPaciente().replace("Paciente-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxPac) maxPac = num;
+			} catch (Exception e) {}
+		}
+		if (maxPac > 0) generadorCodigoPaciente = maxPac + 1;
+		
+		// Enfermedades
+		int maxEnf = 0;
+		for (Enfermedad e : misEnfermedades) {
+			try {
+				String numStr = e.getIdEnfermedad().replace("Enfermedad-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxEnf) maxEnf = num;
+			} catch (Exception e1) {}
+		}
+		if (maxEnf > 0) generadorCodigoEnfermedad = maxEnf + 1;
+		
+		// Vacunas
+		int maxVac = 0;
+		for (Vacuna v : misVacunas) {
+			try {
+				String numStr = v.getIdVacuna().replace("Vacuna-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxVac) maxVac = num;
+			} catch (Exception e) {}
+		}
+		if (maxVac > 0) generadorCodigoVacuna = maxVac + 1;
+		
+		// Viviendas
+		int maxViv = 0;
+		for (Vivienda v : misViviendas) {
+			try {
+				String numStr = v.getIdVivienda().replace("Vivienda-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxViv) maxViv = num;
+			} catch (Exception e) {}
+		}
+		if (maxViv > 0) generadorCodigoVivienda = maxViv + 1;
+		
+		// Consultas
+		int maxCons = 0;
+		for (Consultas c : misConsultas) {
+			try {
+				String numStr = c.getIdConsulta().replace("Consulta-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxCons) maxCons = num;
+			} catch (Exception e) {}
+		}
+		if (maxCons > 0) generadorCodigoConsulta = maxCons + 1;
+		
+		// Citas
+		int maxCit = 0;
+		for (Cita c : misCitas) {
+			try {
+				String numStr = c.getIdCita().replace("Cita-", "");
+				int num = Integer.parseInt(numStr);
+				if (num > maxCit) maxCit = num;
+			} catch (Exception e) {}
+		}
+		if (maxCit > 0) generadorCodigoCita = maxCit + 1;
+	}
+	
+	// ==================== USUARIOS CRUD ====================
+	
+	public void agregarUsuario(Usuario usuario) {
+		misUsuarios.add(usuario);
+		archivoManager.crearUsuario(usuario);
+		generadorCodigoUser++;
+	}
+	
+	public void modificarUsuario(String idUsuario, Usuario usuario) {
+		archivoManager.modificarUsuario(idUsuario, usuario);
+		cargarTodosLosDatos(); // Recargar todo después de modificar
+	}
+	
+	public void borrarUsuario(String idUsuario) {
+		archivoManager.borrarUsuario(idUsuario);
+		cargarTodosLosDatos(); // Recargar todo después de borrar
+	}
+	
+	public ArrayList<Usuario> getMisUsuarios() {
+		return misUsuarios; // Devolver la lista en memoria, NO leer de nuevo
+	}
+	
+	public Usuario buscarUsuarioPorCodigo(String codigoUsuario) {
+		for (Usuario usuario : misUsuarios) {
+			if (usuario.getIdUsuario().equals(codigoUsuario)) {
+				return usuario;
+			}
+		}
+		return null;
+	}
+	
+	// ==================== MEDICOS CRUD ====================
+	
+	public void agregarMedico(Medico medico) {
+		misMedico.add(medico);
+		archivoManager.crearMedico(medico);
+		generadorCodigoidMedico++;
+	}
+	
+	public void modificarMedico(String idMedico, Medico medico) {
+		archivoManager.modificarMedico(idMedico, medico);
+		cargarTodosLosDatos(); // Recargar todo después de modificar
+	}
+	
+	public void borrarMedico(String idMedico) {
+		archivoManager.borrarMedico(idMedico);
+		cargarTodosLosDatos(); // Recargar todo después de borrar
+	}
+	
 	public ArrayList<Medico> getMisMedico() {
-		return misMedico;
+		return misMedico; // Devolver la lista en memoria, NO leer de nuevo
 	}
-
-	public void setMisMedico(ArrayList<Medico> misMedico) {
-		this.misMedico = misMedico;
+	
+	public Medico obtenerMedicoById(String id) {
+		for (Medico medico : misMedico) {
+			if (medico.getIdMedico().equals(id)) {
+				return medico;
+			}
+		}
+		return null;
 	}
-
+	
+	public Medico obtenerMedicoXnombre(String nombre) {
+		for (Medico medico : misMedico) {
+			if (medico.getNombre().equalsIgnoreCase(nombre)) {
+				return medico;
+			}
+		}
+		return null;
+	}
+	
+	// ==================== PACIENTES CRUD ====================
+	
+	public void agregarPaciente(Paciente paciente) {
+		misPaciente.add(paciente);
+		archivoManager.crearPaciente(paciente);
+		generadorCodigoPaciente++;
+	}
+	
+	public void modificarPaciente(String cedula, Paciente paciente) {
+		archivoManager.modificarPaciente(cedula, paciente);
+		cargarTodosLosDatos(); // Recargar todo después de modificar
+	}
+	
+	public void borrarPaciente(String cedula) {
+		archivoManager.borrarPaciente(cedula);
+		cargarTodosLosDatos(); // Recargar todo después de borrar
+	}
+	
 	public ArrayList<Paciente> getMisPaciente() {
-		return misPaciente;
+		return misPaciente; // Devolver la lista en memoria, NO leer de nuevo
 	}
-
-	public void setMisPaciente(ArrayList<Paciente> misPaciente) {
-		this.misPaciente = misPaciente;
+	
+	public Paciente obtenerPacienteById(String id) {
+		for (Paciente paciente : misPaciente) {
+			if (paciente.getIdPaciente().equals(id)) {
+				return paciente;
+			}
+		}
+		return null;
 	}
-
-	public ArrayList<Consultas> getMisConsultas() {
-		return misConsultas;
+	
+	public Paciente obtenerPacienteXnombre(String nombre) {
+		for (Paciente paciente : misPaciente) {
+			if (paciente.getNombre().equalsIgnoreCase(nombre)) {
+				return paciente;
+			}
+		}
+		return null;
 	}
-
-	public void setMisConsultas(ArrayList<Consultas> misConsultas) {
-		this.misConsultas = misConsultas;
+	
+	// ==================== VACUNAS CRUD ====================
+	
+	public void agregarVacuna(Vacuna vacuna) {
+		misVacunas.add(vacuna);
+		archivoManager.crearVacuna(vacuna);
+		generadorCodigoVacuna++;
 	}
-
+	
+	public void modificarVacuna(String idVacuna, Vacuna vacuna) {
+		archivoManager.modificarVacuna(idVacuna, vacuna);
+		cargarTodosLosDatos();
+	}
+	
+	public void borrarVacuna(String idVacuna) {
+		archivoManager.borrarVacuna(idVacuna);
+		cargarTodosLosDatos();
+	}
+	
 	public ArrayList<Vacuna> getMisVacunas() {
 		return misVacunas;
 	}
-
-	public void setMisVacunas(ArrayList<Vacuna> misVacunas) {
-		this.misVacunas = misVacunas;
+	
+	public Vacuna obtenervacuna(String idVacuna) {
+		for (Vacuna vacuna : misVacunas) {
+			if (vacuna.getIdVacuna().equalsIgnoreCase(idVacuna)) {
+				return vacuna;
+			}
+		}
+		return null;
+	}
+	
+	// ==================== ENFERMEDADES CRUD ====================
+	
+	public void agregarEnfermedad(Enfermedad enfermedad) {
+		misEnfermedades.add(enfermedad);
+		archivoManager.crearEnfermedad(enfermedad);
+		generadorCodigoEnfermedad++;
+	}
+	
+	public void modificarEnfermedad(String idEnfermedad, Enfermedad enfermedad) {
+		archivoManager.modificarEnfermedad(idEnfermedad, enfermedad);
+		cargarTodosLosDatos();
+	}
+	
+	public void borrarEnfermedad(String idEnfermedad) {
+		archivoManager.borrarEnfermedad(idEnfermedad);
+		cargarTodosLosDatos();
+	}
+	
+	public ArrayList<Enfermedad> getMisEnfermedades() {
+		return misEnfermedades;
+	}
+	
+	public Enfermedad obtenerEnfermedadById(String id) {
+		for (Enfermedad enfermedad : misEnfermedades) {
+			if (enfermedad.getIdEnfermedad().equals(id)) {
+				return enfermedad;
+			}
+		}
+		return null;
+	}
+	
+	// ==================== VIVIENDAS CRUD ====================
+	
+	public void agregarVivienda(Vivienda vivienda) {
+		misViviendas.add(vivienda);
+		archivoManager.crearVivienda(vivienda);
+		generadorCodigoVivienda++;
+	}
+	
+	public void modificarVivienda(String idVivienda, Vivienda vivienda) {
+		archivoManager.modificarVivienda(idVivienda, vivienda);
+		cargarTodosLosDatos();
+	}
+	
+	public void borrarVivienda(String idVivienda) {
+		archivoManager.borrarVivienda(idVivienda);
+		cargarTodosLosDatos();
+	}
+	
+	public ArrayList<Vivienda> getMisViviendas() {
+		return misViviendas;
+	}
+	
+	public Vivienda obtenervivienda(String idVivienda) {
+		for (Vivienda vivienda : misViviendas) {
+			if (vivienda.getIdVivienda().equals(idVivienda)) {
+				return vivienda;
+			}
+		}
+		return null;
+	}
+	
+	// ==================== CONSULTAS CRUD ====================
+	
+	public void agregarConsulta(Consultas consulta) {
+		misConsultas.add(consulta);
+		archivoManager.crearConsulta(consulta);
+		generadorCodigoConsulta++;
+	}
+	
+	public void modificarConsulta(String idConsulta, Consultas consulta) {
+		archivoManager.modificarConsulta(idConsulta, consulta);
+		cargarTodosLosDatos();
+	}
+	
+	public void borrarConsulta(String idConsulta) {
+		archivoManager.borrarConsulta(idConsulta);
+		cargarTodosLosDatos();
+	}
+	
+	public ArrayList<Consultas> getMisConsultas() {
+		return misConsultas;
+	}
+	
+	// ==================== CITAS CRUD ====================
+	
+	public void agregarCita(Cita cita) {
+		misCitas.add(cita);
+		archivoManager.crearCita(cita);
+		generadorCodigoCita++;
+	}
+	
+	public void modificarCita(String idCita, Cita cita) {
+		archivoManager.modificarCita(idCita, cita);
+		cargarTodosLosDatos();
+	}
+	
+	public void borrarCita(String idCita) {
+		archivoManager.borrarCita(idCita);
+		cargarTodosLosDatos();
 	}
 	
 	public ArrayList<Cita> getMisCitas() {
 		return misCitas;
 	}
-
-	public void setMisCitas(ArrayList<Cita> misCitas) {
-		this.misCitas = misCitas;
-	}
-
 	
-	// A partir de aqui pongamos los metodos...
+	// ==================== MÉTODOS EXISTENTES ====================
 	
-	
-	  // Metodos para crear o insertar 
-	
-	 public ArrayList<Usuario> getMisUsuarios() {
-		return misUsuarios;
-	}
-
-	public void setMisUsuarios(ArrayList<Usuario> misUsuarios) {
-		this.misUsuarios = misUsuarios;
-	}
-
-	public ArrayList<Enfermedad> getMisEnfermedades() {
-		return misEnfermedades;
-	}
-
-	public void setMisEnfermedades(ArrayList<Enfermedad> misEnfermedades) {
-		this.misEnfermedades = misEnfermedades;
-	}
-
-	public ArrayList<Vivienda> getMisViviendas() {
-		return misViviendas;
-	}
-
-	public void setMisViviendas(ArrayList<Vivienda> misViviendas) {
-		this.misViviendas = misViviendas;
-	}
-
 	public void crearCita(String idCita, Paciente paciente, Medico medico, Date fecha) {
-	       
-	        if (misMedico.contains(medico) && misPaciente.contains(paciente)) {	     
-	            if (verificarDisponibilidadMedico(medico, fecha)) {	              
-	                Cita nuevaCita = new Cita(idCita, paciente, medico, fecha);
-	                
-	                misCitas.add(nuevaCita);
-	                System.out.println("Cita creada con éxito.");
-	            } else {
-	                System.out.println("El médico no está disponible en la fecha seleccionada.");
-	            }
-	        } else {
-	            System.out.println("Médico o paciente no encontrados.");
-	        }
-	    }
-	 
-	    public void agregarUsuario(Usuario usuario) {
-	        misUsuarios.add(usuario);
-	        archivoManager.GuardarUsuarios(misUsuarios);
-	        generadorCodigoUser++;
-	    }
-	    
-	    public void agregarMedico(Medico medico) {
-	    	misMedico.add(medico);
-	    	archivoManager.guardarMedicoEnArchivo(medico);
-	    }
-	    
-	    public void agregarPaciente(Paciente paciente) {
-	        misPaciente.add(paciente);
-	        // Cambiamos 'paciente' por la lista completa 'misPaciente'
-	        archivoManager.GuardarTodosLosPacientes(misPaciente); 
-	    }
-	    
-	    public void agregarVacuna(Vacuna vac) {
-	    	misVacunas.add(vac);
-	    	archivoManager.guardarVacunaEnArchivo(vac);
-	    }
-	    
-	    
-	    public void agregarEnfermedad(Enfermedad enfermedad) {
-	    	misEnfermedades.add(enfermedad);
-	    	archivoManager.guardarEnfermedadEnArchivo(enfermedad);
-	    }
-	    
-	    
-	    public void agregarVivienda(Vivienda vivienda) {
-	    	misViviendas.add(vivienda);
-	    	archivoManager.guardarViviendaEnArchivo(vivienda);
-	    }
-	    
-	    public void agregarConsulta(Consultas consu) {
-	    	misConsultas.add(consu);
-	    	archivoManager.guardarConsultasEnArchivo(consu);
-	    }
-	    
-	    public void agregarCitas(Cita cita) { 
-	    	misCitas.add(cita);
-	    	archivoManager.guardarCitasEnArchivo(cita);
-	    }
-	    
-	    
-
-	public void asignarPacienteMedico(String paciente) {
-	     listaPacientesAsignados.add(paciente);
-	        
-	}
-	    
-	public void insertarConsulta(Consultas consultas) {
-				
-				misConsultas.add(consultas);
-				System.out.println(misConsultas);
-				generadorCodigoConsulta++;
-				
-			}
-	   
-    public Paciente obtenerPacienteXnombre(String nombre) {
-		Paciente paciente = null;
-		boolean encontrado = false;
-		int i = 0;
-		while (i < misPaciente.size()&& !encontrado) {
-			if (misPaciente.get(i).getNombre().equalsIgnoreCase(nombre)) {
-				paciente = misPaciente.get(i);
-				encontrado = true;
-			} 
-			i++;
-		}
-		return paciente;
-	}
-   
-    public Medico obtenerMedicoXnombre(String nombre) {
-    	Medico medic = null;
-		boolean encontrado = false;
-		int i = 0;
-		while (i < misMedico.size()&& !encontrado) {
-			if (misMedico.get(i).getNombre().equalsIgnoreCase(nombre)) {
-				medic = misMedico.get(i);
-				encontrado = true;
-			} 
-			i++;
-		}
-		return medic;
-	}
-    
-	public Vacuna obtenervacuna(String idVacuna) {
-		
-		Vacuna vacuna = null;
-		boolean encontrado = false;
-		int i = 0;
-		while(i<misVacunas.size()&& !encontrado) {
-			if(misVacunas.get(i).getIdVacuna().equalsIgnoreCase(idVacuna)) {
-				vacuna = misVacunas.get(i);
-				encontrado = true;
-				break;
-			}
-			i++;
-		}
-		return vacuna;
+		Cita nuevaCita = new Cita(idCita, paciente, medico, fecha);
+		agregarCita(nuevaCita);
 	}
 	
-   
-  
-    public Usuario buscarUsuarioPorCodigo(String codigoUsuario) {
-    	
-        ArrayList<Usuario> usuarios = archivoManager.LeerUsuario();
-        for (Usuario usuario : usuarios) {
-            if (usuario.getIdUsuario().equals(codigoUsuario)) {
-                return usuario;
-            }
-        }
-
-        return null; 
-    }
-    
-    private boolean verificarDisponibilidadMedico(Medico medico, Date fecha) {
-        for (Cita cita : misCitas) {
-            if (cita.getDoc().equals(medico) && cita.getFecha().equals(fecha)) {
-                return false; 
-                }
-        }
-        return true; 
-    }
-    
-    
-    public List<Enfermedad> getEnfermedadesDiagnosticadas() {
-        List<Enfermedad> enfermedadesDiagnosticadas = new ArrayList<>();
-        for (Consultas consulta : misConsultas) {
-            List<Enfermedad> enfermedadesConsulta = consulta.getSintomas();
-            enfermedadesDiagnosticadas.addAll(enfermedadesConsulta);
-        }
-        return enfermedadesDiagnosticadas;
-    }
-    public Vivienda obtenervivienda(String idVivienda) {
-		
-    	ArrayList<Vivienda> viviendas = archivoManager.leerVivienda();
-        for (Vivienda vivienda : viviendas) {
-            if (vivienda.getIdVivienda().equals(idVivienda)) {
-                return vivienda;
-            }
-        }
-
-        return null; 
+	public void asignarPacienteMedico(String paciente) {
+		listaPacientesAsignados.add(paciente);
 	}
-    public Paciente obtenerPacienteById(String id) {
-		
-    	ArrayList<Paciente> pacientes = archivoManager.leerPacientes();
-        for (Paciente paciente : pacientes) {
-            if (paciente.getIdPaciente().equals(id)) {
-                return paciente;
-            }
-        }
-
-        return null; 
+	
+	public void insertarConsulta(Consultas consultas) {
+		agregarConsulta(consultas);
 	}
-    public Medico obtenerMedicoById(String id) {
-    	ArrayList<Medico> medicos = archivoManager.leerMedico();
-        for (Medico medico : medicos) {
-            if (medico.getIdMedico().equals(id)) {
-                return medico;
-            }
-        }
-
-        return null; 
-    	
+	
+	public List<Enfermedad> getEnfermedadesDiagnosticadas() {
+		List<Enfermedad> enfermedadesDiagnosticadas = new ArrayList<>();
+		for (Consultas consulta : misConsultas) {
+			List<Enfermedad> enfermedadesConsulta = consulta.getSintomas();
+			if (enfermedadesConsulta != null) {
+				enfermedadesDiagnosticadas.addAll(enfermedadesConsulta);
+			}
+		}
+		return enfermedadesDiagnosticadas;
 	}
-    public Enfermedad obtenerEnfermedadById(String id) {
-		
-    	ArrayList<Enfermedad> enfermedades = archivoManager.leerEnfermedad();
-        for (Enfermedad enfermedad : enfermedades) {
-            if (enfermedad.getIdEnfermedad().equals(id)) {
-                return enfermedad;
-            }
-        }
-
-        return null; 
-		
-	}
+	
+	// Getters y Setters
+	public void setMisUsuarios(ArrayList<Usuario> misUsuarios) { this.misUsuarios = misUsuarios; }
+	public void setMisMedico(ArrayList<Medico> misMedico) { this.misMedico = misMedico; }
+	public void setMisPaciente(ArrayList<Paciente> misPaciente) { this.misPaciente = misPaciente; }
+	public void setMisConsultas(ArrayList<Consultas> misConsultas) { this.misConsultas = misConsultas; }
+	public void setMisVacunas(ArrayList<Vacuna> misVacunas) { this.misVacunas = misVacunas; }
+	public void setMisCitas(ArrayList<Cita> misCitas) { this.misCitas = misCitas; }
+	public void setMisEnfermedades(ArrayList<Enfermedad> misEnfermedades) { this.misEnfermedades = misEnfermedades; }
+	public void setMisViviendas(ArrayList<Vivienda> misViviendas) { this.misViviendas = misViviendas; }
 }

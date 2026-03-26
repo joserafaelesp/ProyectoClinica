@@ -1,4 +1,1 @@
-049541545441144,Pavel,Masculino,Thu Dec 07 12:06:34 GMT-04:00 2023,8094874541,null,,Medico -1,Losdonpollo
-01,JULIA,Femenino,Tue Dec 07 12:17:00 GMT-04:00 2027,552352342342,null,,Medico -1,JUANITO
-1222,Jean,Masculino,Thu Dec 07 12:57:02 PST 2023,809,Vivienda - 1,
-2323,1223,,Medico -1,effef242342,fsdfsdf,Masculino,Thu Dec 07 14:00:22 GMT-04:00 2023,4565646,Vivienda - 1,Santiago,8095553333,,Medico -1,doctora
+12,MARTINEZ,Masculino,2002-03-03,5566,null,Medico -1,PSICOLOGO

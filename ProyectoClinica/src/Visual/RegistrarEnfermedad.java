@@ -12,6 +12,7 @@ import Logical.Clinica;
 import Logical.Enfermedad;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
 import java.awt.SystemColor;
@@ -29,13 +30,11 @@ public class RegistrarEnfermedad extends JDialog {
 	private JTextField txtSintomas;
 	private JButton btnRegistrar;
 	private Enfermedad miEnfermedad;
+	private boolean esModificacion = false;
 
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		try {
-			RegistrarEnfermedad dialog = new RegistrarEnfermedad(null,0);
+			RegistrarEnfermedad dialog = new RegistrarEnfermedad(null, 0);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -43,15 +42,15 @@ public class RegistrarEnfermedad extends JDialog {
 		}
 	}
 
-	/**
-	 * Create the dialog.
-	 */
 	public RegistrarEnfermedad(Enfermedad disease, int index) {
 		miEnfermedad = disease;
-		if( miEnfermedad == null)
+		esModificacion = (disease != null);
+		
+		if (!esModificacion)
 			setTitle("Registrar Enfermedad");
 		else
 			setTitle("Actualizar Enfermedad");
+		
 		setBounds(100, 100, 450, 300);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBackground(SystemColor.info);
@@ -68,7 +67,7 @@ public class RegistrarEnfermedad extends JDialog {
 		lblNewLabel_1.setBounds(10, 11, 46, 14);
 		contentPanel.add(lblNewLabel_1);
 
-		txtCodigo = new JTextField("Enfermedad - "+Clinica.getInstance().generadorCodigoEnfermedad);
+		txtCodigo = new JTextField("Enfermedad - " + Clinica.generadorCodigoEnfermedad);
 		txtCodigo.setBackground(SystemColor.info);
 		txtCodigo.setEnabled(false);
 		txtCodigo.setBounds(106, 8, 96, 20);
@@ -109,61 +108,68 @@ public class RegistrarEnfermedad extends JDialog {
 		txtSintomas.setBounds(106, 109, 219, 65);
 		contentPanel.add(txtSintomas);
 		txtSintomas.setColumns(10);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setBackground(SystemColor.info);
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				if( miEnfermedad == null)
-					btnRegistrar = new JButton("Registrar");
-				else
-					btnRegistrar = new JButton("Actualizar");
+		
+		JPanel buttonPane = new JPanel();
+		buttonPane.setBackground(SystemColor.info);
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		if (!esModificacion)
+			btnRegistrar = new JButton("Registrar");
+		else
+			btnRegistrar = new JButton("Actualizar");
 
-				btnRegistrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						if(miEnfermedad == null)
-						{
-							Enfermedad aux = new Enfermedad(txtCodigo.getText(),txtNombre.getText(),textDescripcion.getText(),txtSintomas.getText(), null,true);
-							Clinica.getInstance().agregarEnfermedad(aux);
-							clean();
-						}
-						else {
-							miEnfermedad.setDescripcion(textDescripcion.getText());
-							miEnfermedad.setIdEnfermedad(txtCodigo.getText());
-							miEnfermedad.setNombreEnfermedad(txtNombre.getText());
-							miEnfermedad.setSintomas(txtSintomas.getText());
-							dispose();
-						}
-					}
-				});
-				btnRegistrar.setActionCommand("OK");
-				buttonPane.add(btnRegistrar);
-				getRootPane().setDefaultButton(btnRegistrar);
+		btnRegistrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String nombre = txtNombre.getText().trim();
+				String descripcion = textDescripcion.getText().trim();
+				String sintomas = txtSintomas.getText().trim();
+				
+				if (nombre.isEmpty() || descripcion.isEmpty() || sintomas.isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
+				if (!esModificacion) {
+					Enfermedad aux = new Enfermedad(txtCodigo.getText(), nombre, descripcion, sintomas, null, true);
+					Clinica.getInstance().agregarEnfermedad(aux);
+					clean();
+					JOptionPane.showMessageDialog(null, "Enfermedad registrada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					miEnfermedad.setDescripcion(descripcion);
+					miEnfermedad.setNombreEnfermedad(nombre);
+					miEnfermedad.setSintomas(sintomas);
+					Clinica.getInstance().modificarEnfermedad(miEnfermedad.getIdEnfermedad(), miEnfermedad);
+					dispose();
+					JOptionPane.showMessageDialog(null, "Enfermedad actualizada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+				}
 			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+		});
+		btnRegistrar.setActionCommand("OK");
+		buttonPane.add(btnRegistrar);
+		
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
 			}
-		}
-		if(miEnfermedad!=null)
+		});
+		cancelButton.setActionCommand("Cancel");
+		buttonPane.add(cancelButton);
+		
+		if (miEnfermedad != null)
 			loadEnfermedad();
-
 	}
+	
 	public void clean() {
-		Clinica.getInstance().generadorCodigoEnfermedad++;
-		txtCodigo.setText("Enfermedad - "+Clinica.getInstance().generadorCodigoEnfermedad);
+		Clinica.generadorCodigoEnfermedad++;
+		txtCodigo.setText("Enfermedad - " + Clinica.generadorCodigoEnfermedad);
 		textDescripcion.setText("");
 		txtSintomas.setText("");
 		txtNombre.setText("");
 	}
-	public void loadEnfermedad(){
+	
+	public void loadEnfermedad() {
 		txtCodigo.setText(miEnfermedad.getIdEnfermedad());
 		textDescripcion.setText(miEnfermedad.getDescripcion());
 		txtNombre.setText(miEnfermedad.getNombreEnfermedad());

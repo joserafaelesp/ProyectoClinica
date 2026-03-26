@@ -32,9 +32,7 @@ public class PrincipalVisual extends JFrame {
     private Dimension dim;
     public JMenuItem crearEnfermedad;
     public JMenuItem crearVivienda;
-    /**
-     * Launch the application.
-     */
+
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
@@ -49,18 +47,14 @@ public class PrincipalVisual extends JFrame {
         });
     }
 
-    /**
-     * Create the frame.
-     */
     public PrincipalVisual() {
-    	
-    	dim = getToolkit().getScreenSize();
+        dim = getToolkit().getScreenSize();
         setIconImage(Toolkit.getDefaultToolkit().getImage(PrincipalVisual.class.getResource("/imagenes/edificio-del-hospital.png")));
         setTitle("MENU CLINICA");
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 450, 300);
-        setSize(dim.width, dim.height-40);
+        setSize(dim.width, dim.height - 40);
         setLocationRelativeTo(null);
 
         menuBar = new JMenuBar();
@@ -72,12 +66,11 @@ public class PrincipalVisual extends JFrame {
 
         hacerCita = new JMenuItem("Hacer Cita");
         hacerCita.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		HacerCita hacerCita = new HacerCita();
-        		hacerCita.setModal(true);
-        		hacerCita.setVisible(true);
-        		
-        	}
+            public void actionPerformed(ActionEvent e) {
+                HacerCita hacerCita = new HacerCita();
+                hacerCita.setModal(true);
+                hacerCita.setVisible(true);
+            }
         });
         stylizeMenuItem(hacerCita);
         mCitas.add(hacerCita);
@@ -88,11 +81,11 @@ public class PrincipalVisual extends JFrame {
         HacerConsultas = new JMenuItem("Hacer Consulta");
         HacerConsultas.setBackground(SystemColor.activeCaption);
         HacerConsultas.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		HacerConsulta hacerCons = new HacerConsulta();
-        		hacerCons.setModal(true);
-        		hacerCons.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                HacerConsulta hacerCons = new HacerConsulta();
+                hacerCons.setModal(true);
+                hacerCons.setVisible(true);
+            }
         });
         stylizeMenuItem(HacerConsultas);
         mConsultas.add(HacerConsultas);
@@ -103,11 +96,11 @@ public class PrincipalVisual extends JFrame {
         mntmNewMenuItem_9 = new JMenuItem("Crear Persona");
         mntmNewMenuItem_9.setBackground(SystemColor.activeCaption);
         mntmNewMenuItem_9.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		RegistrarGeneral regisGen = new RegistrarGeneral(null,0);
-        		regisGen.setModal(true);
-        		regisGen.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                RegistrarGeneral regisGen = new RegistrarGeneral(null, 0);
+                regisGen.setModal(true);
+                regisGen.setVisible(true);
+            }
         });
         stylizeMenuItem(mntmNewMenuItem_9);
         mRegistro.add(mntmNewMenuItem_9);
@@ -115,35 +108,37 @@ public class PrincipalVisual extends JFrame {
         crearVacuna = new JMenuItem("Crear Vacuna");
         crearVacuna.setBackground(SystemColor.activeCaption);
         crearVacuna.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		RegistrarVacuna regisVac = new RegistrarVacuna();
-        		regisVac.setModal(true);
-        		regisVac.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent arg0) {
+                RegistrarVacuna regisVac = new RegistrarVacuna();
+                regisVac.setModal(true);
+                regisVac.setVisible(true);
+            }
         });
         stylizeMenuItem(crearVacuna);
         mRegistro.add(crearVacuna);
-        
+
         crearEnfermedad = new JMenuItem("Crear enfermedad");
         crearEnfermedad.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		RegistrarEnfermedad enfer = new RegistrarEnfermedad(null, 0);
-        		enfer.setModal(true);
-        		enfer.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                RegistrarEnfermedad enfer = new RegistrarEnfermedad(null, 0);
+                enfer.setModal(true);
+                enfer.setVisible(true);
+            }
         });
         crearEnfermedad.setBackground(SystemColor.activeCaption);
+        stylizeMenuItem(crearEnfermedad);
         mRegistro.add(crearEnfermedad);
-        
+
         crearVivienda = new JMenuItem("Crear Vivienda");
         crearVivienda.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		RegistrarVivienda vivienda = new RegistrarVivienda(null, 0);
-        		vivienda.setModal(true);
-        		vivienda.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                RegistrarVivienda vivienda = new RegistrarVivienda(null, 0);
+                vivienda.setModal(true);
+                vivienda.setVisible(true);
+            }
         });
         crearVivienda.setBackground(SystemColor.activeCaption);
+        stylizeMenuItem(crearVivienda);
         mRegistro.add(crearVivienda);
 
         mInvertario = new JMenu("INVENTARIO");
@@ -151,11 +146,11 @@ public class PrincipalVisual extends JFrame {
 
         listaPaciente = new JMenuItem("Listado Paciente");
         listaPaciente.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		ListarPaciente listar1 = new ListarPaciente();
-        		listar1.setModal(true);
-        		listar1.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                ListarPaciente listar1 = new ListarPaciente();
+                listar1.setModal(true);
+                listar1.setVisible(true);
+            }
         });
         listaPaciente.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(listaPaciente);
@@ -163,17 +158,22 @@ public class PrincipalVisual extends JFrame {
 
         listaMedico = new JMenuItem("Listado Medico");
         listaMedico.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		ListarMedico lista2 = new ListarMedico();
-        		lista2.setModal(true);
-        		lista2.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent e) {
+                ListarMedico lista2 = new ListarMedico();
+                lista2.setModal(true);
+                lista2.setVisible(true);
+            }
         });
         listaMedico.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(listaMedico);
         mInvertario.add(listaMedico);
 
         listadoVacuna = new JMenuItem("Listado Vacunas");
+        listadoVacuna.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "Función en desarrollo", "Información", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
         listadoVacuna.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(listadoVacuna);
         mInvertario.add(listadoVacuna);
@@ -181,21 +181,20 @@ public class PrincipalVisual extends JFrame {
         listadoEnfermedad = new JMenuItem("Listado Enfermedades");
         listadoEnfermedad.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(listadoEnfermedad);
-        listadoEnfermedad.addActionListener(e -> {
-            // LogUser logUserDialog = new LogUser();
-            // logUserDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            // logUserDialog.setVisible(true);
+        listadoEnfermedad.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null, "Función en desarrollo", "Información", JOptionPane.INFORMATION_MESSAGE);
+            }
         });
         mInvertario.add(listadoEnfermedad);
 
         listaVivienda = new JMenuItem("Listado Vivienda");
         listaVivienda.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		
-        		ListarVivienda listarV = new ListarVivienda();
-        		listarV.setModal(true);
-        		listarV.setVisible(true);
-        	}
+            public void actionPerformed(ActionEvent arg0) {
+                ListarVivienda listarV = new ListarVivienda();
+                listarV.setModal(true);
+                listarV.setVisible(true);
+            }
         });
         listaVivienda.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(listaVivienda);
@@ -222,7 +221,7 @@ public class PrincipalVisual extends JFrame {
         });
         mUSER.add(crearUsuario);
 
-        borrarUsuario = new JMenuItem("Borrar Usuario");
+        borrarUsuario = new JMenuItem("Gestionar Usuarios");
         borrarUsuario.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(borrarUsuario);
         borrarUsuario.addActionListener(e -> {
@@ -241,6 +240,7 @@ public class PrincipalVisual extends JFrame {
         lblUser = new JLabel("          ");
         lblUser.setForeground(new Color(0, 153, 0));
         menuBar.add(lblUser);
+        
         contentPane = new JPanel();
         contentPane.setBackground(SystemColor.window);
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -258,14 +258,11 @@ public class PrincipalVisual extends JFrame {
         panel.add(lblNewLabel_1);
     }
 
-  
     private void stylizeMenuItem(JMenuItem menuItem) {
-        menuItem.setFont(new Font("Segoe UI", Font.PLAIN, 16));  
-        menuItem.setForeground(Color.BLACK);  
-        menuItem.setBackground(SystemColor.activeCaption);  
-        menuItem.setPreferredSize(new Dimension(180, 40));  
-        menuItem.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); 
+        menuItem.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        menuItem.setForeground(Color.BLACK);
+        menuItem.setBackground(SystemColor.activeCaption);
+        menuItem.setPreferredSize(new Dimension(180, 40));
+        menuItem.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     }
 }
-
-

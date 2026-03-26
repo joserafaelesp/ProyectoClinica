@@ -5,10 +5,8 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -23,7 +21,6 @@ import javax.swing.table.DefaultTableModel;
 import Logical.Clinica;
 import Logical.Enfermedad;
 import Logical.Paciente;
-import Logical.archivoManager;
 
 import java.awt.Color;
 
@@ -31,12 +28,12 @@ public class ReportePaciente extends JDialog {
 
     private final JPanel contentPanel = new JPanel();
     private JTextField txtNombre;
-    private JTextField txtIdVacuna;
+    private JTextField txtIdPaciente;
     private JTextArea txtDescripcion;
     private JTextField txtCedula;
     private JTable tableEnfermedades;
-    private static Object[] rowEnfermedades;
     private static DefaultTableModel model;
+    private Paciente pacienteActual = null;
 
     public static void main(String[] args) {
         try {
@@ -50,7 +47,7 @@ public class ReportePaciente extends JDialog {
 
     public ReportePaciente() {
         setTitle("Reporte de Paciente");
-        setBounds(100, 100, 705, 673);
+        setBounds(100, 100, 705, 600);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(224, 255, 255));
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -64,70 +61,62 @@ public class ReportePaciente extends JDialog {
         txtNombre = new JTextField();
         txtNombre.setEditable(false);
         txtNombre.setEnabled(false);
-        txtNombre.setBounds(67, 62, 166, 20);
+        txtNombre.setBounds(74, 62, 166, 20);
         contentPanel.add(txtNombre);
         txtNombre.setColumns(10);
 
-        JLabel lblNewLabel_1 = new JLabel("ID:");
-        lblNewLabel_1.setBounds(18, 26, 46, 14);
+        JLabel lblNewLabel_1 = new JLabel("ID Paciente:");
+        lblNewLabel_1.setBounds(10, 26, 70, 14);
         contentPanel.add(lblNewLabel_1);
 
-        txtIdVacuna = new JTextField();
-        txtIdVacuna.setBounds(67, 23, 166, 20);
-        contentPanel.add(txtIdVacuna);
-        txtIdVacuna.setColumns(10);
+        txtIdPaciente = new JTextField();
+        txtIdPaciente.setBounds(90, 23, 150, 20);
+        contentPanel.add(txtIdPaciente);
+        txtIdPaciente.setColumns(10);
 
         JButton btnBuscar = new JButton("Buscar");
         btnBuscar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // buscarID();
+                buscarPaciente();
             }
         });
-        btnBuscar.setBounds(243, 23, 80, 20);
+        btnBuscar.setBounds(250, 23, 80, 20);
         contentPanel.add(btnBuscar);
 
-        JLabel lblNewLabel_3 = new JLabel("Diagnosticar Enfermedades: ");
-        lblNewLabel_3.setBounds(10, 421, 173, 14);
-        contentPanel.add(lblNewLabel_3);
-
         JLabel lblNewLabel_4 = new JLabel("Descripcion de Paciente:");
-        lblNewLabel_4.setBounds(334, 34, 147, 14);
+        lblNewLabel_4.setBounds(10, 120, 147, 14);
         contentPanel.add(lblNewLabel_4);
 
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(334, 59, 225, 316);
+        scrollPane.setBounds(10, 145, 400, 150);
         contentPanel.add(scrollPane);
 
         txtDescripcion = new JTextArea();
         scrollPane.setViewportView(txtDescripcion);
         txtDescripcion.setLineWrap(true);
         txtDescripcion.setWrapStyleWord(true);
+        txtDescripcion.setEditable(false);
 
         JLabel lblCedula = new JLabel("Cedula:");
-        lblCedula.setBounds(10, 109, 46, 14);
+        lblCedula.setBounds(10, 95, 46, 14);
         contentPanel.add(lblCedula);
 
         txtCedula = new JTextField();
         txtCedula.setEditable(false);
         txtCedula.setEnabled(false);
-        txtCedula.setColumns(10);
-        txtCedula.setBounds(67, 106, 166, 20);
+        txtCedula.setBounds(74, 92, 166, 20);
         contentPanel.add(txtCedula);
+        txtCedula.setColumns(10);
 
-        JLabel lblVacunasSugeridas = new JLabel("Vacunas Sugeridas: ");
-        lblVacunasSugeridas.setBounds(10, 147, 173, 14);
-        contentPanel.add(lblVacunasSugeridas);
+        JLabel lblEnfermedades = new JLabel("Enfermedades registradas:");
+        lblEnfermedades.setBounds(10, 310, 200, 14);
+        contentPanel.add(lblEnfermedades);
 
-        JComboBox cmbVacunas = new JComboBox();
-        cmbVacunas.setBounds(10, 172, 141, 20);
-        contentPanel.add(cmbVacunas);
-
-       
         JScrollPane scrollPaneEnfermedades = new JScrollPane();
-        scrollPaneEnfermedades.setBounds(10, 446, 549, 150);
+        scrollPaneEnfermedades.setBounds(10, 335, 669, 180);
         contentPanel.add(scrollPaneEnfermedades);
 
-        String headersEnfermedades[] = { "Nombre", "Código", "Síntomas" };
+        String headersEnfermedades[] = {"Código", "Nombre", "Síntomas"};
         model = new DefaultTableModel();
         model.setColumnIdentifiers(headersEnfermedades);
 
@@ -135,43 +124,57 @@ public class ReportePaciente extends JDialog {
         tableEnfermedades.getTableHeader().setReorderingAllowed(false);
         tableEnfermedades.setModel(model);
         scrollPaneEnfermedades.setViewportView(tableEnfermedades);
-        
-
- 
 
         JPanel buttonPane = new JPanel();
         buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-        JButton okButton = new JButton("Agregar");
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            }
-        });
-        okButton.setActionCommand("OK");
-        buttonPane.add(okButton);
-        getRootPane().setDefaultButton(okButton);
-
-        JButton cancelButton = new JButton("Cancelar");
+        JButton cancelButton = new JButton("Salir");
         cancelButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 dispose();
             }
         });
-        cancelButton.setActionCommand("Cancel");
         buttonPane.add(cancelButton);
         
-        
-        cargarDatosDesdeArchivo("enfermedad.txt");
+        cargarEnfermedades();
     }
 
-    private void cargarDatosDesdeArchivo(String archivo) {
-    	
-        ArrayList<Enfermedad> listaEnf = archivoManager.leerEnfermedad();
-        DefaultTableModel model = (DefaultTableModel) tableEnfermedades.getModel();
+    private void buscarPaciente() {
+        String idPaciente = txtIdPaciente.getText().trim();
+        if (idPaciente.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Ingrese un ID de paciente", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        pacienteActual = Clinica.getInstance().obtenerPacienteById(idPaciente);
+        if (pacienteActual != null) {
+            txtNombre.setText(pacienteActual.getNombre());
+            txtCedula.setText(pacienteActual.getCedula());
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("Nombre: ").append(pacienteActual.getNombre()).append("\n");
+            sb.append("Cédula: ").append(pacienteActual.getCedula()).append("\n");
+            sb.append("Teléfono: ").append(pacienteActual.getTelefono()).append("\n");
+            sb.append("Género: ").append(pacienteActual.getGenero()).append("\n");
+            sb.append("Info Emergencia: ").append(pacienteActual.getInfoEmergencia()).append("\n");
+            if (pacienteActual.getViviend() != null) {
+                sb.append("Vivienda: ").append(pacienteActual.getViviend().getDireccion());
+            }
+            txtDescripcion.setText(sb.toString());
+            
+            JOptionPane.showMessageDialog(null, "Paciente encontrado", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "Paciente no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
+            txtNombre.setText("");
+            txtCedula.setText("");
+            txtDescripcion.setText("");
+        }
+    }
 
+    private void cargarEnfermedades() {
+        ArrayList<Enfermedad> listaEnf = Clinica.getInstance().getMisEnfermedades();
         model.setRowCount(0);
-
         for (Enfermedad enfermedad : listaEnf) {
             model.addRow(new Object[]{enfermedad.getIdEnfermedad(), enfermedad.getNombreEnfermedad(), enfermedad.getSintomas()});
         }

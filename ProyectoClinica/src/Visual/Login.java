@@ -8,8 +8,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import Logical.Clinica;
 import Logical.Usuario;
-import Logical.archivoManager;
 
 import java.awt.SystemColor;
 import javax.swing.JPasswordField;
@@ -30,9 +30,6 @@ public class Login extends JFrame {
 	private JTextField txtUser;
 	private Dimension dim;
 
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -46,9 +43,6 @@ public class Login extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public Login() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 467, 260);
@@ -108,8 +102,7 @@ public class Login extends JFrame {
 		JButton btnEntrar = new JButton("Entrar");
 		btnEntrar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
-				ArrayList<Usuario> usuarios = archivoManager.LeerUsuario();
+				ArrayList<Usuario> usuarios = Clinica.getInstance().getMisUsuarios();
 				char[] clave = JpassContra.getPassword();
 				String claveFinal = new String(clave);
 				String nombreUsuario = txtUser.getText();
@@ -128,13 +121,9 @@ public class Login extends JFrame {
 					PrincipalVisual main = new PrincipalVisual();
 
 					if (usuarioEncontrado.esAdministrador()) {
-
 						main.mConsultas.setVisible(false);
 						main.mCitas.setVisible(false);
-
-						System.out.println("Acciones para administradores");
 					} else if (usuarioEncontrado.esSecretaria()) {
-
 						main.mConsultas.setVisible(false);
 						main.listadoEnfermedad.setVisible(false);
 						main.listadoVacuna.setVisible(false);
@@ -142,26 +131,20 @@ public class Login extends JFrame {
 						main.crearVacuna.setVisible(false);
 						main.crearVivienda.setVisible(false);
 						main.mRegistro.setVisible(true);
-						main.crearVacuna.setVisible(false);
 						main.listaVivienda.setVisible(false);
 						main.mUSER.setVisible(false);
-
-						System.out.println("Acciones para secretarias");
 					} else if (usuarioEncontrado.esMedico()) {
-
 						main.mCitas.setVisible(false);
 						main.listaVivienda.setVisible(false);
 						main.crearEnfermedad.setVisible(false);
 						main.crearVacuna.setVisible(false);
 						main.mUSER.setVisible(false);
-						
-						System.out.println("Acciones para médicos");
 					}
 
 					main.lblUser.setText(usuarioEncontrado.getNombreUser());
 					dim = getToolkit().getScreenSize();
 					main.setResizable(false);
-					main.setSize(dim.width, dim.height-40);
+					main.setSize(dim.width, dim.height - 40);
 					main.setLocationRelativeTo(null);
 					main.setVisible(true);
 				} else {
@@ -169,8 +152,7 @@ public class Login extends JFrame {
 					txtUser.setText("");
 					JpassContra.setText("");
 				}
-			}  
-
+			}
 		});
 		btnEntrar.setBounds(331, 174, 89, 23);
 		contentPane.add(btnEntrar);

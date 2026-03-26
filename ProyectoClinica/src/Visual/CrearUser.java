@@ -25,11 +25,10 @@ public class CrearUser extends JDialog {
 	private JTextField txtPassword;
 	private JTextField txtUserId;
 	private JTextField TXTcodID;
-	private JComboBox cbxRol;
+	private JComboBox<String> cbxRol;
+	private Usuario usuarioExistente;
+	private boolean esModificacion = false;
 
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		try {
 			CrearUser dialog = new CrearUser();
@@ -40,11 +39,15 @@ public class CrearUser extends JDialog {
 		}
 	}
 
-	/**
-	 * Create the dialog.
-	 */
 	public CrearUser() {
-		setTitle("Crear Usuario");
+		this(null);
+	}
+	
+	public CrearUser(Usuario usuario) {
+		usuarioExistente = usuario;
+		esModificacion = (usuario != null);
+		
+		setTitle(esModificacion ? "Modificar Usuario" : "Crear Usuario");
 		setBounds(100, 100, 301, 243);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -83,25 +86,50 @@ public class CrearUser extends JDialog {
 
 			TXTcodID = new JTextField();
 			TXTcodID.setBounds(88, 37, 140, 20);
+			TXTcodID.setEnabled(!esModificacion);
 			panel.add(TXTcodID);
 			TXTcodID.setColumns(10);
 
-			cbxRol = new JComboBox();
-			cbxRol.setModel(new DefaultComboBoxModel(new String[] {"Selecionar rol", "Medico", "Administrador", "Secretaria"}));
+			cbxRol = new JComboBox<>();
+			cbxRol.setModel(new DefaultComboBoxModel<>(new String[] {"Selecionar rol", "Medico", "Administrador", "Secretaria"}));
 			cbxRol.setBounds(88, 115, 140, 20);
 			panel.add(cbxRol);
+			
+			if (esModificacion) {
+				TXTcodID.setText(usuario.getIdUsuario());
+				txtUserId.setText(usuario.getNombreUser());
+				txtPassword.setText(usuario.getPassword());
+				cbxRol.setSelectedItem(usuario.getRol());
+			}
 		}
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
-				JButton okButton = new JButton("OK");
+				JButton okButton = new JButton(esModificacion ? "Modificar" : "OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Usuario user = new Usuario(TXTcodID.getText(), txtUserId.getText(), txtPassword.getText(), cbxRol.getSelectedItem().toString());
-						Clinica.getInstance().agregarUsuario(user);
-						JOptionPane.showMessageDialog(null, "Operación Satisfactoria", "Resgistro", JOptionPane.INFORMATION_MESSAGE);
+						String id = TXTcodID.getText();
+						String user = txtUserId.getText();
+						String pass = txtPassword.getText();
+						String rol = cbxRol.getSelectedItem().toString();
+						
+						if (id.isEmpty() || user.isEmpty() || pass.isEmpty() || rol.equals("Selecionar rol")) {
+							JOptionPane.showMessageDialog(null, "Complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+						
+						Usuario userObj = new Usuario(id, user, pass, rol);
+						
+						if (esModificacion) {
+							Clinica.getInstance().modificarUsuario(id, userObj);
+							JOptionPane.showMessageDialog(null, "Usuario modificado correctamente", "Modificación", JOptionPane.INFORMATION_MESSAGE);
+						} else {
+							Clinica.getInstance().agregarUsuario(userObj);
+							JOptionPane.showMessageDialog(null, "Usuario registrado correctamente", "Registro", JOptionPane.INFORMATION_MESSAGE);
+						}
+						dispose();
 					}
 				});
 				okButton.setActionCommand("OK");
@@ -110,6 +138,11 @@ public class CrearUser extends JDialog {
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						dispose();
+					}
+				});
 				cancelButton.setActionCommand("Cancel");
 				buttonPane.add(cancelButton);
 			}

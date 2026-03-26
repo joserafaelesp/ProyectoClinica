@@ -13,9 +13,10 @@ import Logical.Medico;
 import Logical.Paciente;
 import Logical.Persona;
 import Logical.Vivienda;
-import javafx.scene.control.ComboBox;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -51,10 +52,11 @@ public class RegistrarGeneral extends JDialog {
 	private Vivienda nuevaViv = null;
 	private JComboBox<String> comboBoxGender;
 	private JButton btnEditarVivienda;
+	private boolean esModificacion = false;
 
 	public static void main(String[] args) {
 		try {
-			RegistrarGeneral dialog = new RegistrarGeneral(null,0);
+			RegistrarGeneral dialog = new RegistrarGeneral(null, 0);
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -64,13 +66,14 @@ public class RegistrarGeneral extends JDialog {
 
 	public RegistrarGeneral(Persona person, int index) {
 		miPersona = person;
-		if(miPersona == null)
-		{
-			setTitle("Registrar");
+		esModificacion = (person != null);
+		
+		if (!esModificacion) {
+			setTitle("Registrar Persona");
+		} else {
+			setTitle("Modificar Persona");
 		}
-		else {
-			setTitle("Modificar");
-		}
+		
 		setBounds(100, 100, 705, 411);
 		setResizable(false);
 		getContentPane().setLayout(new BorderLayout());
@@ -82,7 +85,6 @@ public class RegistrarGeneral extends JDialog {
 			panel.setBackground(SystemColor.info);
 			contentPanel.add(panel, BorderLayout.CENTER);
 			panel.setLayout(null);
-
 
 			JPanel panel_DatosGenerales = new JPanel();
 			panel_DatosGenerales.setBorder(new TitledBorder(null, "Datos generales", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -105,6 +107,7 @@ public class RegistrarGeneral extends JDialog {
 				}
 			});
 			txtCedula.setBounds(66, 23, 152, 20);
+			txtCedula.setEnabled(!esModificacion);
 			panel_DatosGenerales.add(txtCedula);
 			txtCedula.setColumns(10);
 
@@ -114,7 +117,6 @@ public class RegistrarGeneral extends JDialog {
 
 			txtTelefono = new JTextField();
 			txtTelefono.setBounds(74, 107, 144, 20);
-			panel_DatosGenerales.add(txtTelefono);
 			txtTelefono.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyTyped(KeyEvent e) {
@@ -123,6 +125,7 @@ public class RegistrarGeneral extends JDialog {
 						e.consume();
 				}
 			});
+			panel_DatosGenerales.add(txtTelefono);
 			txtTelefono.setColumns(10);
 
 			JLabel lblNombre = new JLabel("Nombre:");
@@ -146,8 +149,8 @@ public class RegistrarGeneral extends JDialog {
 			lblGenero.setBounds(10, 156, 52, 14);
 			panel_DatosGenerales.add(lblGenero);
 
-			comboBoxGender = new JComboBox();
-			comboBoxGender.setModel(new DefaultComboBoxModel(new String[] {"Elegir", "Masculino", "Femenino"}));
+			comboBoxGender = new JComboBox<>();
+			comboBoxGender.setModel(new DefaultComboBoxModel<>(new String[] {"Elegir", "Masculino", "Femenino"}));
 			comboBoxGender.setEditable(true);
 			comboBoxGender.setMaximumRowCount(3);
 			comboBoxGender.setBounds(82, 153, 94, 20);
@@ -186,7 +189,7 @@ public class RegistrarGeneral extends JDialog {
 			spnFecha.setModel(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_YEAR));
 			panel_DatosGenerales.add(spnFecha);
 
-			JLabel lblNewLabel_3 = new JLabel("Fecha de Naciemiento:");
+			JLabel lblNewLabel_3 = new JLabel("Fecha de Nacimiento:");
 			lblNewLabel_3.setBounds(255, 26, 144, 14);
 			panel_DatosGenerales.add(lblNewLabel_3);
 
@@ -203,11 +206,10 @@ public class RegistrarGeneral extends JDialog {
 			btnBuscaVivienda.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					nuevaViv = Clinica.getInstance().obtenervivienda(txtVivienda.getText());
-					if(nuevaViv!=null) {
+					if (nuevaViv != null) {
 						txtVivienda.setText(nuevaViv.getIdVivienda());
 						txtVivienda.setEnabled(false);
 					}
-
 				}
 			});
 			btnBuscaVivienda.setBounds(545, 65, 89, 23);
@@ -216,11 +218,11 @@ public class RegistrarGeneral extends JDialog {
 			JButton btnCrearVivienda = new JButton("Crear");
 			btnCrearVivienda.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					RegistrarVivienda nueva = new RegistrarVivienda(null,0);
+					RegistrarVivienda nueva = new RegistrarVivienda(null, 0);
 					nueva.setModal(true);
 					nueva.setVisible(true);
 					nuevaViv = nueva.getCasaReg();
-					if(nuevaViv!=null) {
+					if (nuevaViv != null) {
 						txtVivienda.setText(nuevaViv.getIdVivienda());
 						txtVivienda.setEnabled(false);
 						btnCrearVivienda.setVisible(false);
@@ -235,16 +237,14 @@ public class RegistrarGeneral extends JDialog {
 			btnEditarVivienda.setVisible(false);
 			btnEditarVivienda.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					RegistrarVivienda nueva = new RegistrarVivienda (nuevaViv,0);
+					RegistrarVivienda nueva = new RegistrarVivienda(nuevaViv, 0);
 					nueva.setModal(true);
 					nueva.setVisible(true);
 				}
 			});
 			btnEditarVivienda.setEnabled(true);
 			btnEditarVivienda.setBounds(545, 106, 89, 23);
-
 			panel_DatosGenerales.add(btnEditarVivienda);
-
 
 			panel_Medico = new JPanel();
 			panel_Medico.setBorder(new TitledBorder(null, "Datos de Medico", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -263,7 +263,7 @@ public class RegistrarGeneral extends JDialog {
 			panel_Medico.add(txtCodeMed);
 			txtCodeMed.setBackground(SystemColor.info);
 			txtCodeMed.setEnabled(false);
-			txtCodeMed.setText("Medico -" + Clinica.getInstance().generadorCodigoidMedico);
+			txtCodeMed.setText("Medico -" + Clinica.generadorCodigoidMedico);
 			txtCodeMed.setColumns(10);
 
 			JLabel lblEspecialidad = new JLabel("Especialidad:");
@@ -290,11 +290,12 @@ public class RegistrarGeneral extends JDialog {
 			panel.add(panel_Paciente);
 			panel_Paciente.setLayout(null);
 			panel_Paciente.setVisible(false);
+			
 			JLabel lblNewLabel_5 = new JLabel("Codigo:");
 			lblNewLabel_5.setBounds(10, 36, 46, 14);
 			panel_Paciente.add(lblNewLabel_5);
 
-			textCodigoPaciente = new JTextField("Paciente - "+Clinica.getInstance().generadorCodigoPaciente);
+			textCodigoPaciente = new JTextField("Paciente - " + Clinica.generadorCodigoPaciente);
 			textCodigoPaciente.setBackground(SystemColor.info);
 			textCodigoPaciente.setEnabled(false);
 			textCodigoPaciente.setBounds(66, 33, 86, 20);
@@ -315,89 +316,88 @@ public class RegistrarGeneral extends JDialog {
 			panel.add(lblNewLabel);
 			lblNewLabel.setIcon(new ImageIcon(RegistrarGeneral.class.getResource("/imagenes/edificio-del-hospital (2).png")));
 		}
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setBackground(SystemColor.info);
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						dispose();
+		
+		JPanel buttonPane = new JPanel();
+		buttonPane.setBackground(SystemColor.info);
+		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		JButton btnRegistrar = new JButton(esModificacion ? "Actualizar" : "Registrar");
+		btnRegistrar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String cedula = txtCedula.getText().trim();
+				String nombre = txtNombre.getText().trim();
+				String genero = (String) comboBoxGender.getSelectedItem();
+				Date fecha = (Date) spnFecha.getValue();
+				String telefono = txtTelefono.getText().trim();
+				Vivienda vivienda = Clinica.getInstance().obtenervivienda(txtVivienda.getText());
+				
+				if (cedula.isEmpty() || nombre.isEmpty() || genero.equals("Elegir") || telefono.isEmpty()) {
+					JOptionPane.showMessageDialog(null, "Complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
+				if (!esModificacion) {
+					if (rdbtnMedico.isSelected()) {
+						Medico aux = new Medico(cedula, nombre, genero, fecha, telefono, vivienda,
+								txtCodeMed.getText(), txtxEspecialidad.getText());
+						Clinica.getInstance().agregarMedico(aux);
+					} else if (rdbtnPaciente.isSelected()) {
+						Paciente aux = new Paciente(cedula, nombre, genero, fecha, telefono,
+								textCodigoPaciente.getText(), vivienda,
+								textFieldInfoEmergencia.getText(), null);
+						Clinica.getInstance().agregarPaciente(aux);
+					} else {
+						JOptionPane.showMessageDialog(null, "Seleccione un rol (Médico o Paciente)", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
 					}
-				});
-
-				JButton btnRegistrar = new JButton("Registrar");
-				btnRegistrar.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						if(miPersona == null) {
-							if(rdbtnMedico.isSelected()) {
-
-								Medico aux = new Medico(txtCedula.getText(),txtNombre.getText(),
-										((String)comboBoxGender.getSelectedItem()),(Date)spnFecha.getValue(),
-										txtTelefono.getText(),Clinica.getInstance().obtenervivienda(txtVivienda.getText()),
-										txtCodeMed.getText(),txtxEspecialidad.getText());
-								Clinica.getInstance().agregarMedico(aux);;
-								miPersona=aux;
-
-							}
-							else {
-								Paciente aux = new Paciente(txtCedula.getText(),txtNombre.getText(),
-										((String)comboBoxGender.getSelectedItem()),(Date)spnFecha.getValue(),
-										txtTelefono.getText(),textCodigoPaciente.getText(),
-										Clinica.getInstance().obtenervivienda(txtVivienda.getText()),
-										textFieldInfoEmergencia.getText(),null);
-								Clinica.getInstance().agregarPaciente(aux);;
-								miPersona=aux;
-							}
-							clean();
-
-						}
-						else {
-							miPersona.setCedula(txtCedula.getText());
-							miPersona.setFechaNacimiento((Date)spnFecha.getValue());
-							miPersona.setGenero((String)comboBoxGender.getSelectedItem());
-							miPersona.setNombre(txtNombre.getText());
-							miPersona.setTelefono(txtTelefono.getText());
-							miPersona.setViviend(Clinica.getInstance().obtenervivienda(txtVivienda.getText()));
-							if(miPersona instanceof Paciente) {
-								rdbtnMedico.setSelected(false);
-								rdbtnPaciente.setSelected(true);
-								((Paciente) miPersona).setIdPaciente(textCodigoPaciente.getText());
-								((Paciente) miPersona).setInfoEmergencia(textFieldInfoEmergencia.getText());
-							}
-							if(miPersona instanceof Medico){
-								rdbtnMedico.setSelected(true);
-								rdbtnPaciente.setSelected(false);
-								((Medico) miPersona).setIdMedico(txtCodeMed.getText());
-								((Medico) miPersona).setEspecialidad(txtxEspecialidad.getText());
-
-							}
-						}
+					clean();
+					JOptionPane.showMessageDialog(null, "Registrado correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					miPersona.setCedula(cedula);
+					miPersona.setFechaNacimiento(fecha);
+					miPersona.setGenero(genero);
+					miPersona.setNombre(nombre);
+					miPersona.setTelefono(telefono);
+					miPersona.setViviend(vivienda);
+					
+					if (miPersona instanceof Paciente && rdbtnPaciente.isSelected()) {
+						((Paciente) miPersona).setInfoEmergencia(textFieldInfoEmergencia.getText());
+						Clinica.getInstance().modificarPaciente(cedula, (Paciente) miPersona);
 					}
-				});
-				buttonPane.add(btnRegistrar);
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
+					if (miPersona instanceof Medico && rdbtnMedico.isSelected()) {
+						((Medico) miPersona).setEspecialidad(txtxEspecialidad.getText());
+						Clinica.getInstance().modificarMedico(((Medico) miPersona).getIdMedico(), (Medico) miPersona);
+					}
+					dispose();
+					JOptionPane.showMessageDialog(null, "Actualizado correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+				}
 			}
-		}
-		if(miPersona != null) {
+		});
+		buttonPane.add(btnRegistrar);
+		
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		buttonPane.add(cancelButton);
+		
+		if (miPersona != null) {
 			loadPersona();
 		}
 	}
 
 	public void clean() {
 		txtCedula.setText("");
-		if(miPersona instanceof Medico) {
-			Clinica.getInstance().generadorCodigoidMedico++;
+		if (miPersona instanceof Medico) {
+			Clinica.generadorCodigoidMedico++;
+			txtCodeMed.setText("Medico - " + Clinica.generadorCodigoidMedico);
+		} else {
+			Clinica.generadorCodigoPaciente++;
+			textCodigoPaciente.setText("Paciente - " + Clinica.generadorCodigoPaciente);
 		}
-		else {
-			Clinica.getInstance().generadorCodigoPaciente++;
-		}
-		txtCodeMed.setText("Medico - "+Clinica.getInstance().generadorCodigoidMedico);
-		textCodigoPaciente.setText("Paciente - "+Clinica.getInstance().generadorCodigoPaciente);
 		textFieldInfoEmergencia.setText("");
 		txtNombre.setText("");
 		txtTelefono.setText("");
@@ -409,25 +409,29 @@ public class RegistrarGeneral extends JDialog {
 		panel_Paciente.setVisible(false);
 		txtVivienda.setEnabled(true);
 	}
+	
 	public void loadPersona() {
 		txtCedula.setText(miPersona.getCedula());
 		txtNombre.setText(miPersona.getNombre());
 		txtTelefono.setText(miPersona.getTelefono());
-		txtVivienda.setText(miPersona.getViviend().getIdVivienda());
-		comboBoxGender.setActionCommand(miPersona.getGenero());
-		spnFecha.setEnabled(false);
-		if(miPersona instanceof Paciente) {
+		if (miPersona.getViviend() != null) {
+			txtVivienda.setText(miPersona.getViviend().getIdVivienda());
+		}
+		comboBoxGender.setSelectedItem(miPersona.getGenero());
+		
+		if (miPersona instanceof Paciente) {
 			rdbtnMedico.setSelected(false);
 			rdbtnPaciente.setSelected(true);
+			panel_Paciente.setVisible(true);
 			textCodigoPaciente.setText(((Paciente) miPersona).getIdPaciente());
 			textFieldInfoEmergencia.setText(((Paciente) miPersona).getInfoEmergencia());
 		}
-		if(miPersona instanceof Medico){
+		if (miPersona instanceof Medico) {
 			rdbtnMedico.setSelected(true);
 			rdbtnPaciente.setSelected(false);
+			panel_Medico.setVisible(true);
 			txtCodeMed.setText(((Medico) miPersona).getIdMedico());
 			txtxEspecialidad.setText(((Medico) miPersona).getEspecialidad());
-
 		}
 	}
 }

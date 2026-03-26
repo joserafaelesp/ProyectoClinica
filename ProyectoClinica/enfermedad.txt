@@ -1,11 +1,1 @@
-Enfermedad - 1,Dengue,mala,fiebre alta,null
-Enfermedad - 1,nhhn,hnhhybh,hgfghhjhj,null
-Enfermedad - 1,jxnjwx,swn sw,qjsjsq,null
-Enfermedad - 1,mmwjs,qmsqk,maqmsq,null
-Enfermedad - 1,sqsw,sww,swwws,null
-Enfermedad - 2,wdw,dwwdwd,wxwxxw,null
-Enfermedad - 3,wwed,wwdw,deewewd,null
-Enfermedad - 1,swws,dewdw,wdd,null
-Enfermedad - 2,dwwd,qss,xsc,null
-Enfermedad - 1,qxw,qaaq,zqqz,null
-Enfermedad - 1,Dengue,,,null
+Enfermedad - 1,DENGUE,GRIPE,FIEBRE Y VOMITO,null,true

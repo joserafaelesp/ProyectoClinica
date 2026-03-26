@@ -10,9 +10,9 @@ public class HistoriaMedica {
 
 	public HistoriaMedica(ArrayList<Consultas> historialConsultas) {
 		super();
-		historialConsultas = new ArrayList<Consultas>();
+		this.historialConsultas = historialConsultas != null ? historialConsultas : new ArrayList<>();
+		this.resumenPaciente = new ResumenHistorial("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 	}
-
 
 	public ArrayList<Consultas> getHistorialConsultas() {
 		return historialConsultas;
@@ -23,22 +23,38 @@ public class HistoriaMedica {
 	}
 
 	public void agregarConsulta(Consultas consult) {
+		if (historialConsultas == null) {
+			historialConsultas = new ArrayList<>();
+		}
 		historialConsultas.add(consult);
 	}
 
 	public ResumenHistorial generarResumen() {
-		ResumenHistorial resumen = null;
-		int i=0;
-		for (Consultas consultas : historialConsultas) {
-			resumen.setCodigo(historialConsultas.get(i).getIdConsulta());
-			resumen.getMedicos().add(historialConsultas.get(i).getDoctor());
-			resumen.getEnfermedades().addAll(historialConsultas.get(i).getSintomas());
-			resumen.getFecha().add((Date) historialConsultas.get(i).getFechaConsulta());
-			i++;
+		ResumenHistorial resumen = new ResumenHistorial("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+		for (Consultas consulta : historialConsultas) {
+			if (consulta.getDoctor() != null) {
+				resumen.getMedicos().add(consulta.getDoctor());
+			}
+			if (consulta.getSintomas() != null) {
+				resumen.getEnfermedades().addAll(consulta.getSintomas());
+			}
+			if (consulta.getFechaConsulta() != null) {
+				resumen.getFecha().add(new Date(consulta.getFechaConsulta().getTime()));
+			}
 		}
-
 		return resumen;
-
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("HIST_" + System.currentTimeMillis());
+		if (historialConsultas != null) {
+			for (Consultas c : historialConsultas) {
+				sb.append(",").append(c.getIdConsulta());
+			}
+		}
+		return sb.toString();
 	}
 
 	public ResumenHistorial getResumenPaciente() {

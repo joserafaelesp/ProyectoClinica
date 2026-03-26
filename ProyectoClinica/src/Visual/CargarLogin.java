@@ -21,10 +21,6 @@ public class CargarLogin extends JFrame {
 
 	Login verLogin = new Login();
 
-
-	/**
-	 * Launch the application.
-	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -41,9 +37,6 @@ public class CargarLogin extends JFrame {
 		});
 	}
 
-	/**
-	 * Create the frame.
-	 */
 	public CargarLogin() {
 		setAutoRequestFocus(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -78,6 +71,5 @@ public class CargarLogin extends JFrame {
 		lblNewLabel_1.setIcon(new ImageIcon(CargarLogin.class.getResource("/imagenes/edificio-del-hospital (3).png")));
 		lblNewLabel_1.setBounds(155, 53, 144, 136);
 		panel.add(lblNewLabel_1);
-
 	}
 }
