@@ -32,13 +32,17 @@ public class PrincipalVisual extends JFrame {
     private Dimension dim;
     public JMenuItem crearEnfermedad;
     public JMenuItem crearVivienda;
+    
+    // NUEVO: Variable global para guardar al usuario que inició sesión
+    private Logical.Usuario usuarioActual;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
                     UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-                    PrincipalVisual frame = new PrincipalVisual();
+                    // NUEVO: Se envía null para que no dé error si pruebas la ventana sola
+                    PrincipalVisual frame = new PrincipalVisual(null);
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -47,9 +51,18 @@ public class PrincipalVisual extends JFrame {
         });
     }
 
-    public PrincipalVisual() {
+    // NUEVO: El constructor ahora recibe al Usuario
+    public PrincipalVisual(Logical.Usuario user) {
+        this.usuarioActual = user; // Guardamos el usuario
+        
         dim = getToolkit().getScreenSize();
-        setIconImage(Toolkit.getDefaultToolkit().getImage(PrincipalVisual.class.getResource("/imagenes/edificio-del-hospital.png")));
+        // Para evitar el error de ruta si no tienes la imagen, usa un try-catch o coméntalo si falla
+        try {
+            setIconImage(Toolkit.getDefaultToolkit().getImage(PrincipalVisual.class.getResource("/imagenes/edificio-del-hospital.png")));
+        } catch (Exception e) {
+            System.out.println("Icono no encontrado");
+        }
+        
         setTitle("MENU CLINICA");
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -82,7 +95,8 @@ public class PrincipalVisual extends JFrame {
         HacerConsultas.setBackground(SystemColor.activeCaption);
         HacerConsultas.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                HacerConsulta hacerCons = new HacerConsulta();
+                // NUEVO: Le enviamos el usuarioActual a la ventana de Consultas
+                HacerConsulta hacerCons = new HacerConsulta(usuarioActual);
                 hacerCons.setModal(true);
                 hacerCons.setVisible(true);
             }
@@ -132,7 +146,7 @@ public class PrincipalVisual extends JFrame {
         crearVivienda = new JMenuItem("Crear Vivienda");
         crearVivienda.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                RegistrarVivienda vivienda = new RegistrarVivienda(null, 0);
+                RegistrarVivienda vivienda = new RegistrarVivienda(null,0); // Actualizado a la opción recomendada
                 vivienda.setModal(true);
                 vivienda.setVisible(true);
             }
@@ -215,9 +229,9 @@ public class PrincipalVisual extends JFrame {
         crearUsuario.setBackground(SystemColor.activeCaption);
         stylizeMenuItem(crearUsuario);
         crearUsuario.addActionListener(e -> {
-            CrearUser user = new CrearUser();
-            user.setModal(true);
-            user.setVisible(true);
+            CrearUser usuario = new CrearUser(null);
+            usuario.setModal(true);
+            usuario.setVisible(true);
         });
         mUSER.add(crearUsuario);
 
@@ -237,7 +251,9 @@ public class PrincipalVisual extends JFrame {
         JLabel lblNewLabel = new JLabel(" USUARIO ACTIVO: - ");
         menuBar.add(lblNewLabel);
 
-        lblUser = new JLabel("          ");
+        // NUEVO: Muestra el nombre real del usuario en la barra
+        String nombreLabel = (usuarioActual != null) ? usuarioActual.getNombreUser() : "Invitado";
+        lblUser = new JLabel("  " + nombreLabel + "  ");
         lblUser.setForeground(new Color(0, 153, 0));
         menuBar.add(lblUser);
         
@@ -252,10 +268,15 @@ public class PrincipalVisual extends JFrame {
         contentPane.add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
-        JLabel lblNewLabel_1 = new JLabel("");
-        lblNewLabel_1.setIcon(new ImageIcon(PrincipalVisual.class.getResource("/imagenes/caduceo.png")));
-        lblNewLabel_1.setBounds(870, 367, 64, 104);
-        panel.add(lblNewLabel_1);
+        // Para evitar el error de ruta si no tienes la imagen
+        try {
+            JLabel lblNewLabel_1 = new JLabel("");
+            lblNewLabel_1.setIcon(new ImageIcon(PrincipalVisual.class.getResource("/imagenes/caduceo.png")));
+            lblNewLabel_1.setBounds(870, 367, 64, 104);
+            panel.add(lblNewLabel_1);
+        } catch (Exception e) {
+            System.out.println("Imagen de fondo no encontrada");
+        }
     }
 
     private void stylizeMenuItem(JMenuItem menuItem) {

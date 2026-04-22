@@ -16,6 +16,7 @@ import javax.swing.table.DefaultTableModel;
 import Logical.Clinica;
 import Logical.Consultas;
 import Logical.Enfermedad;
+import Logical.Usuario; // <-- NUEVO: Importamos la clase Usuario
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -44,10 +45,14 @@ public class HacerConsulta extends JDialog {
 	private ArrayList<Enfermedad> enfermedadesSelected;
 	private JTextField txtEnfermedad;
 	private Enfermedad consultEnfermedad = null;
+	
+	// <-- NUEVO: Variable para recibir al usuario desde el menú
+	private Usuario usuarioActual; 
 
 	public static void main(String[] args) {
 		try {
-			HacerConsulta dialog = new HacerConsulta();
+			// <-- NUEVO: Se envía null para pruebas
+			HacerConsulta dialog = new HacerConsulta(null); 
 			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			dialog.setVisible(true);
 		} catch (Exception e) {
@@ -55,7 +60,9 @@ public class HacerConsulta extends JDialog {
 		}
 	}
 
-	public HacerConsulta() {
+	// <-- NUEVO: El constructor ahora recibe al Usuario
+	public HacerConsulta(Usuario user) {
+		this.usuarioActual = user; // Guardamos el usuario
 		enfermedadesSelected = new ArrayList<>();
 		setTitle("Hacer Consulta");
 		setBounds(100, 100, 600, 450);
@@ -73,6 +80,12 @@ public class HacerConsulta extends JDialog {
 		txtCodMed.setBounds(359, 30, 100, 20);
 		contentPanel.add(txtCodMed);
 		txtCodMed.setColumns(10);
+		
+		// <-- NUEVO: Si el usuario es médico, autocompleta su ID y bloquea el campo
+		if (usuarioActual != null && usuarioActual.esMedico()) {
+			txtCodMed.setText(usuarioActual.getIdUsuario());
+			txtCodMed.setEnabled(false);
+		}
 		
 		JLabel lblNewLabel_2 = new JLabel("ID Paciente:");
 		lblNewLabel_2.setBounds(10, 66, 80, 14);
@@ -206,10 +219,14 @@ public class HacerConsulta extends JDialog {
 	
 	public void clean() {
 		txtCodePaciente.setText("");
-		txtCodMed.setText("");
 		txtEnfermedad.setText("");
 		enfermedadesSelected.clear();
 		Clinica.generadorCodigoConsulta++;
 		txtConsulta.setText("Consulta - " + Clinica.generadorCodigoConsulta);
+		
+		// Limpiamos el médico solo si NO es un médico usando el sistema
+		if (usuarioActual == null || !usuarioActual.esMedico()) {
+			txtCodMed.setText("");
+		}
 	}
 }

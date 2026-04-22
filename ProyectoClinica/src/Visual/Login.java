@@ -56,7 +56,7 @@ public class Login extends JFrame {
 		JpassContra.setBounds(227, 131, 214, 20);
 		contentPane.add(JpassContra);
 
-		JLabel lblNewLabel = new JLabel("Contrase\u00F1a:");
+		JLabel lblNewLabel = new JLabel("Contraseña:");
 		lblNewLabel.setBounds(227, 118, 85, 14);
 		contentPane.add(lblNewLabel);
 
@@ -76,7 +76,12 @@ public class Login extends JFrame {
 		panel.setLayout(null);
 
 		JLabel lblNewLabel_2 = new JLabel("");
-		lblNewLabel_2.setIcon(new ImageIcon(Login.class.getResource("/imagenes/edificio-del-hospital (3).png")));
+		// Nota: Si el icono te da error, asegúrate de que la ruta sea correcta en tu proyecto
+		try {
+			lblNewLabel_2.setIcon(new ImageIcon(Login.class.getResource("/imagenes/edificio-del-hospital (3).png")));
+		} catch (Exception ex) {
+			System.out.println("Imagen de login no encontrada");
+		}
 		lblNewLabel_2.setBounds(36, 74, 128, 145);
 		panel.add(lblNewLabel_2);
 
@@ -118,8 +123,11 @@ public class Login extends JFrame {
 				if (usuarioEncontrado != null) {
 					dispose();
 					JOptionPane.showMessageDialog(null, "Bienvenido a Clinica S.R.L", "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
-					PrincipalVisual main = new PrincipalVisual();
+					
+					// ✅ SOLUCIÓN: Le pasamos el usuarioEncontrado al menú principal
+					PrincipalVisual main = new PrincipalVisual(usuarioEncontrado);
 
+					// Aplicación de permisos según el rol
 					if (usuarioEncontrado.esAdministrador()) {
 						main.mConsultas.setVisible(false);
 						main.mCitas.setVisible(false);
@@ -141,7 +149,9 @@ public class Login extends JFrame {
 						main.mUSER.setVisible(false);
 					}
 
-					main.lblUser.setText(usuarioEncontrado.getNombreUser());
+					// Esto ya lo hace internamente PrincipalVisual, pero lo dejamos por si acaso
+					main.lblUser.setText("  " + usuarioEncontrado.getNombreUser() + "  ");
+					
 					dim = getToolkit().getScreenSize();
 					main.setResizable(false);
 					main.setSize(dim.width, dim.height - 40);

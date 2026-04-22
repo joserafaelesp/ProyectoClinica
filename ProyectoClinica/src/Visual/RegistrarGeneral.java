@@ -54,16 +54,6 @@ public class RegistrarGeneral extends JDialog {
 	private JButton btnEditarVivienda;
 	private boolean esModificacion = false;
 
-	public static void main(String[] args) {
-		try {
-			RegistrarGeneral dialog = new RegistrarGeneral(null, 0);
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public RegistrarGeneral(Persona person, int index) {
 		miPersona = person;
 		esModificacion = (person != null);
@@ -337,15 +327,19 @@ public class RegistrarGeneral extends JDialog {
 					return;
 				}
 				
+				// --- INICIO DEL PARCHE DE FECHAS ---
+				java.time.LocalDate fechaModerna = fecha.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+				// --- FIN DEL PARCHE ---
+
 				if (!esModificacion) {
 					if (rdbtnMedico.isSelected()) {
-						Medico aux = new Medico(cedula, nombre, genero, fecha, telefono, vivienda,
+						Medico aux = new Medico(cedula, nombre, genero, fechaModerna, telefono, vivienda,
 								txtCodeMed.getText(), txtxEspecialidad.getText());
 						Clinica.getInstance().agregarMedico(aux);
 					} else if (rdbtnPaciente.isSelected()) {
-						Paciente aux = new Paciente(cedula, nombre, genero, fecha, telefono,
+						Paciente aux = new Paciente(cedula, nombre, genero, fechaModerna, telefono,
 								textCodigoPaciente.getText(), vivienda,
-								textFieldInfoEmergencia.getText(), null);
+								textFieldInfoEmergencia.getText()); 
 						Clinica.getInstance().agregarPaciente(aux);
 					} else {
 						JOptionPane.showMessageDialog(null, "Seleccione un rol (Médico o Paciente)", "Error", JOptionPane.ERROR_MESSAGE);
@@ -355,7 +349,7 @@ public class RegistrarGeneral extends JDialog {
 					JOptionPane.showMessageDialog(null, "Registrado correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 				} else {
 					miPersona.setCedula(cedula);
-					miPersona.setFechaNacimiento(fecha);
+					miPersona.setFechaNacimiento(fechaModerna);
 					miPersona.setGenero(genero);
 					miPersona.setNombre(nombre);
 					miPersona.setTelefono(telefono);

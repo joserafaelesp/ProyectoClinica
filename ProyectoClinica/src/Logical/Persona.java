@@ -1,46 +1,39 @@
 package Logical;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-public class Persona {
+public abstract class Persona {
+    protected String cedula;
+    protected String nombre;
+    protected String genero;
+    protected LocalDate fechaNacimiento;
+    protected String telefono;
+    protected Vivienda vivienda;
 
-	protected String cedula;
-	protected String nombre;
-	protected String genero;
-	protected Date fechaNacimiento;
-	protected String telefono;
-	protected Vivienda viviend;
+    public Persona(String cedula, String nombre, String genero, LocalDate fechaNacimiento, String telefono, Vivienda vivienda) {
+        this.cedula = cedula;
+        this.nombre = nombre;
+        this.genero = genero;
+        this.fechaNacimiento = fechaNacimiento;
+        this.telefono = telefono;
+        this.vivienda = vivienda;
+    }
 
-	public Persona(String cedula, String nombre, String genero, Date fechaNacimiento, String telefono, Vivienda viviend) {
-		super();
-		this.cedula = cedula;
-		this.nombre = nombre;
-		this.genero = genero;
-		this.fechaNacimiento = fechaNacimiento;
-		this.telefono = telefono;
-		this.viviend = viviend;
-	}
+    protected String formatearFecha() {
+        return (fechaNacimiento != null) ? fechaNacimiento.format(DateTimeFormatter.ISO_LOCAL_DATE) : "null";
+    }
 
-	@Override
-	public String toString() {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		return cedula + "," + nombre + "," + genero + "," + 
-			   (fechaNacimiento != null ? dateFormat.format(fechaNacimiento) : "null") + 
-			   "," + telefono + "," + (viviend != null ? viviend.getIdVivienda() : "null");
-	}
-
-	// Getters y Setters...
-	public String getCedula() { return cedula; }
-	public void setCedula(String cedula) { this.cedula = cedula; }
-	public String getNombre() { return nombre; }
-	public void setNombre(String nombre) { this.nombre = nombre; }
-	public String getGenero() { return genero; }
-	public void setGenero(String genero) { this.genero = genero; }
-	public Date getFechaNacimiento() { return fechaNacimiento; }
-	public void setFechaNacimiento(Date fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
-	public String getTelefono() { return telefono; }
-	public void setTelefono(String telefono) { this.telefono = telefono; }
-	public Vivienda getViviend() { return viviend; }
-	public void setViviend(Vivienda viviend) { this.viviend = viviend; }
+    public String getCedula() { return cedula; }
+    public void setCedula(String cedula) { this.cedula = cedula; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getGenero() { return genero; }
+    public void setGenero(String genero) { this.genero = genero; }
+    public LocalDate getFechaNacimiento() { return fechaNacimiento; }
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public Vivienda getViviend() { return vivienda; }
+    public void setViviend(Vivienda vivienda) { this.vivienda = vivienda; }
 }
