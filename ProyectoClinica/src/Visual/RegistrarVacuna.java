@@ -1,160 +1,150 @@
 package Visual;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import Logical.Clinica;
-import Logical.Paciente;
 import Logical.Vacuna;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.JSpinner;
-import java.awt.Color;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import javax.swing.SpinnerNumberModel;
 
 public class RegistrarVacuna extends JDialog {
 
-	private final JPanel contentPanel = new JPanel();
-	private JTextField txtNombreVacuna;
-	private JTextField txtIdVacuna;
-	private JTextField txtDescripcion;
-	private JTextField txtIdPaciente;
-	private JSpinner spnCantidad;
+    private final JPanel contentPanel = new JPanel();
+    private JTextField   txtIdVacuna;
+    private JTextField   txtNombreVacuna;
+    private JTextField   txtDescripcion;
+    private JButton      btnAccion;
+    private Vacuna       miVacuna;
+    private boolean      esModificacion = false;
 
-	public static void main(String[] args) {
-		try {
-			RegistrarVacuna dialog = new RegistrarVacuna();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    // ── Constructor para REGISTRAR (nuevo) ───────────────────────
+    public RegistrarVacuna() {
+        this(null, 0);
+    }
 
-	public RegistrarVacuna() {
-		setTitle("Registrar Vacuna");
-		setBounds(100, 100, 500, 350);
-		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new BorderLayout(0, 0));
-		{
-			JPanel panel = new JPanel();
-			panel.setBackground(new Color(255, 192, 203));
-			contentPanel.add(panel, BorderLayout.CENTER);
-			panel.setLayout(null);
+    // ── Constructor para MODIFICAR (desde ListarVacuna) ──────────
+    public RegistrarVacuna(Vacuna vacuna, int index) {
+        miVacuna       = vacuna;
+        esModificacion = (vacuna != null);
 
-			JLabel lblNewLabel = new JLabel("Nombre:");
-			lblNewLabel.setBounds(30, 65, 54, 14);
-			panel.add(lblNewLabel);
+        setTitle(esModificacion ? "Actualizar Vacuna" : "Registrar Vacuna");
+        setBounds(100, 100, 460, 300);
+        setResizable(false);
+        getContentPane().setLayout(new BorderLayout());
+        contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+        contentPanel.setLayout(new BorderLayout(0, 0));
 
-			txtNombreVacuna = new JTextField();
-			txtNombreVacuna.setBounds(94, 62, 166, 20);
-			panel.add(txtNombreVacuna);
-			txtNombreVacuna.setColumns(10);
+        JPanel panel = new JPanel();
+        panel.setBackground(new Color(255, 192, 203));
+        contentPanel.add(panel, BorderLayout.CENTER);
+        panel.setLayout(null);
 
-			JLabel lblNewLabel_1 = new JLabel("ID:");
-			lblNewLabel_1.setBounds(30, 26, 46, 14);
-			panel.add(lblNewLabel_1);
+        // ── ID ───────────────────────────────────────────────────
+        JLabel lblId = new JLabel("ID:");
+        lblId.setBounds(30, 26, 46, 14);
+        panel.add(lblId);
 
-			txtIdVacuna = new JTextField();
-			txtIdVacuna.setEditable(false);
-			txtIdVacuna.setEnabled(false);
-			txtIdVacuna.setText("Vacuna - " + Clinica.generadorCodigoVacuna);
-			txtIdVacuna.setBounds(94, 23, 86, 20);
-			panel.add(txtIdVacuna);
-			txtIdVacuna.setColumns(10);
+        txtIdVacuna = new JTextField(
+            "Vacuna-" + Clinica.generadorCodigoVacuna);
+        txtIdVacuna.setEditable(false);
+        txtIdVacuna.setEnabled(false);
+        txtIdVacuna.setBackground(SystemColor.info);
+        txtIdVacuna.setBounds(94, 23, 120, 20);
+        panel.add(txtIdVacuna);
 
-			JLabel lblNewLabel_2 = new JLabel("Cantidad:");
-			lblNewLabel_2.setBounds(30, 96, 54, 14);
-			panel.add(lblNewLabel_2);
+        // ── Nombre ───────────────────────────────────────────────
+        JLabel lblNombre = new JLabel("Nombre:");
+        lblNombre.setBounds(30, 65, 54, 14);
+        panel.add(lblNombre);
 
-			spnCantidad = new JSpinner();
-			spnCantidad.setModel(new SpinnerNumberModel(1, 1, 100, 1));
-			spnCantidad.setBounds(94, 93, 86, 20);
-			panel.add(spnCantidad);
+        txtNombreVacuna = new JTextField();
+        txtNombreVacuna.setBounds(94, 62, 200, 20);
+        panel.add(txtNombreVacuna);
 
-			JLabel lblNewLabel_3 = new JLabel("ID Paciente:");
-			lblNewLabel_3.setBounds(30, 127, 80, 14);
-			panel.add(lblNewLabel_3);
+        // ── Descripción ──────────────────────────────────────────
+        JLabel lblDesc = new JLabel("Descripcion:");
+        lblDesc.setBounds(30, 105, 80, 14);
+        panel.add(lblDesc);
 
-			txtIdPaciente = new JTextField();
-			txtIdPaciente.setBounds(120, 124, 100, 20);
-			panel.add(txtIdPaciente);
-			txtIdPaciente.setColumns(10);
+        txtDescripcion = new JTextField();
+        txtDescripcion.setBounds(115, 102, 300, 80);
+        panel.add(txtDescripcion);
 
-			JLabel lblNewLabel_4 = new JLabel("Descripcion:");
-			lblNewLabel_4.setBounds(30, 158, 72, 14);
-			panel.add(lblNewLabel_4);
+        // ── Botones ──────────────────────────────────────────────
+        JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-			txtDescripcion = new JTextField();
-			txtDescripcion.setBounds(112, 155, 300, 100);
-			panel.add(txtDescripcion);
-			txtDescripcion.setColumns(10);
-		}
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("Agregar");
-				okButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						String idVacuna = txtIdVacuna.getText();
-						String nombre = txtNombreVacuna.getText().trim();
-						String idPaciente = txtIdPaciente.getText().trim();
-						int cantidad = (int) spnCantidad.getValue();
-						String descripcion = txtDescripcion.getText().trim();
-						
-						if (nombre.isEmpty() || idPaciente.isEmpty() || descripcion.isEmpty()) {
-							JOptionPane.showMessageDialog(null, "Complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-						
-						Paciente paciente = Clinica.getInstance().obtenerPacienteById(idPaciente);
-						if (paciente == null) {
-							JOptionPane.showMessageDialog(null, "Paciente no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-						
-						Vacuna vacuna = new Vacuna(idVacuna, nombre, paciente, cantidad, descripcion);
-						Clinica.getInstance().agregarVacuna(vacuna);
-						clean();
-						JOptionPane.showMessageDialog(null, "Vacuna registrada correctamente", "�xito", JOptionPane.INFORMATION_MESSAGE);
-					}
-				});
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
-			}
-			{
-				JButton cancelButton = new JButton("Cancelar");
-				cancelButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent arg0) {
-						dispose();
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
-		}
-	}
-	
-	public void clean() {
-		Clinica.generadorCodigoVacuna++;
-		txtIdVacuna.setText("Vacuna - " + Clinica.generadorCodigoVacuna);
-		txtNombreVacuna.setText("");
-		txtIdPaciente.setText("");
-		spnCantidad.setValue(1);
-		txtDescripcion.setText("");
-	}
+        btnAccion = new JButton(esModificacion ? "Actualizar" : "Agregar");
+        btnAccion.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String nombre      = txtNombreVacuna.getText().trim();
+                String descripcion = txtDescripcion.getText().trim();
+
+                if (nombre.isEmpty()) {
+                    JOptionPane.showMessageDialog(null,
+                        "El nombre es obligatorio",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (!esModificacion) {
+                    // ── REGISTRAR ────────────────────────────────
+                    Vacuna nueva = new Vacuna(
+                        txtIdVacuna.getText(), nombre, descripcion);
+                    Clinica.getInstance().agregarVacuna(nueva);
+                    clean();
+                    JOptionPane.showMessageDialog(null,
+                        "Vacuna registrada correctamente",
+                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // ── ACTUALIZAR ───────────────────────────────
+                    miVacuna.setNombreVacuna(nombre);
+                    miVacuna.setDescripcion(descripcion);
+                    Clinica.getInstance().modificarVacuna(
+                        miVacuna.getIdVacuna(), miVacuna);
+                    dispose();
+                    JOptionPane.showMessageDialog(null,
+                        "Vacuna actualizada correctamente",
+                        "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+        btnAccion.setActionCommand("OK");
+        buttonPane.add(btnAccion);
+        getRootPane().setDefaultButton(btnAccion);
+
+        JButton cancelButton = new JButton("Cancelar");
+        cancelButton.addActionListener(e -> dispose());
+        buttonPane.add(cancelButton);
+
+        // Cargar datos si es modificación
+        if (miVacuna != null) loadVacuna();
+    }
+
+    public void clean() {
+        Clinica.generadorCodigoVacuna++;
+        txtIdVacuna.setText("Vacuna-" + Clinica.generadorCodigoVacuna);
+        txtNombreVacuna.setText("");
+        txtDescripcion.setText("");
+    }
+
+    public void loadVacuna() {
+        txtIdVacuna.setText(miVacuna.getIdVacuna());
+        txtNombreVacuna.setText(miVacuna.getNombreVacuna());
+        txtDescripcion.setText(
+            miVacuna.getDescripcion() != null
+                ? miVacuna.getDescripcion() : "");
+    }
 }

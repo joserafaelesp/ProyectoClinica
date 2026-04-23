@@ -133,7 +133,6 @@ public class RegistrarVivienda extends JDialog {
 							JOptionPane.showMessageDialog(null, "Vivienda registrada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
 						} else {
 							miVivienda.setDireccion(direccion);
-							miVivienda.setTelefono(telefono);
 							Clinica.getInstance().modificarVivienda(miVivienda.getIdVivienda(), miVivienda);
 							dispose();
 							JOptionPane.showMessageDialog(null, "Vivienda actualizada correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);

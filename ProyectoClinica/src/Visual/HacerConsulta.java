@@ -1,232 +1,299 @@
 package Visual;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
 import Logical.Consultas;
 import Logical.Enfermedad;
-import Logical.Usuario; // <-- NUEVO: Importamos la clase Usuario
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.SpinnerDateModel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.border.TitledBorder;
-import javax.swing.UIManager;
-import java.awt.Color;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.SystemColor;
-import javax.swing.ImageIcon;
+import Logical.Medico;
+import Logical.Paciente;
+import Logical.Usuario;
 
 public class HacerConsulta extends JDialog {
 
-	private final JPanel contentPanel = new JPanel();
-	private JTextField txtCodMed;
-	private JTextField txtCodePaciente;
-	private JSpinner spnFecha;
-	private JTextField txtConsulta;
-	private JTable tableEnfermedadNoSelected;
-	private static DefaultTableModel modeloNoSelected;
-	private JButton btnAgregar;
-	private ArrayList<Enfermedad> enfermedadesSelected;
-	private JTextField txtEnfermedad;
-	private Enfermedad consultEnfermedad = null;
-	
-	// <-- NUEVO: Variable para recibir al usuario desde el men�
-	private Usuario usuarioActual; 
+    private final JPanel       contentPanel     = new JPanel();
+    private JTextField         txtCedulaMed;
+    private JTextField         txtCedulaPaciente;
+    private JTextField         txtDiagnostico;
+    private JSpinner           spnFecha;
+    private JTextField         txtConsulta;
+    private JTable             tableEnfermedades;
+    private DefaultTableModel  modeloTabla;
+    private JButton            btnAgregar;
+    private ArrayList<Enfermedad> enfermedadesSelected;
+    private JTextField         txtEnfermedad;
+    private Enfermedad         consultEnfermedad = null;
+    private Usuario            usuarioActual;
 
-	public static void main(String[] args) {
-		try {
-			// <-- NUEVO: Se env�a null para pruebas
-			HacerConsulta dialog = new HacerConsulta(null); 
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public HacerConsulta(Usuario user) {
+        this.usuarioActual    = user;
+        this.enfermedadesSelected = new ArrayList<>();
 
-	// <-- NUEVO: El constructor ahora recibe al Usuario
-	public HacerConsulta(Usuario user) {
-		this.usuarioActual = user; // Guardamos el usuario
-		enfermedadesSelected = new ArrayList<>();
-		setTitle("Hacer Consulta");
-		setBounds(100, 100, 600, 450);
-		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setBackground(SystemColor.info);
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(null);
-		
-		JLabel lblNewLabel_1 = new JLabel("ID Medico:");
-		lblNewLabel_1.setBounds(269, 33, 80, 14);
-		contentPanel.add(lblNewLabel_1);
-		
-		txtCodMed = new JTextField();
-		txtCodMed.setBounds(359, 30, 100, 20);
-		contentPanel.add(txtCodMed);
-		txtCodMed.setColumns(10);
-		
-		// <-- NUEVO: Si el usuario es m�dico, autocompleta su ID y bloquea el campo
-		if (usuarioActual != null && usuarioActual.esMedico()) {
-			txtCodMed.setText(usuarioActual.getIdUsuario());
-			txtCodMed.setEnabled(false);
-		}
-		
-		JLabel lblNewLabel_2 = new JLabel("ID Paciente:");
-		lblNewLabel_2.setBounds(10, 66, 80, 14);
-		contentPanel.add(lblNewLabel_2);
-		
-		txtCodePaciente = new JTextField();
-		txtCodePaciente.setBounds(100, 63, 100, 20);
-		contentPanel.add(txtCodePaciente);
-		txtCodePaciente.setColumns(10);
-		
-		spnFecha = new JSpinner();
-		spnFecha.setBounds(359, 61, 123, 20);
-		spnFecha.setModel(new SpinnerDateModel(new Date(), null, null, Calendar.DAY_OF_YEAR));
-		contentPanel.add(spnFecha);
-		
-		JLabel lblNewLabel_3 = new JLabel("Fecha:");
-		lblNewLabel_3.setBounds(269, 66, 80, 14);
-		contentPanel.add(lblNewLabel_3);
-		
-		JLabel lblNewLabel_4 = new JLabel("Codigo Consulta:");
-		lblNewLabel_4.setBounds(10, 30, 100, 14);
-		contentPanel.add(lblNewLabel_4);
-		
-		txtConsulta = new JTextField("Consulta - " + Clinica.generadorCodigoConsulta);
-		txtConsulta.setEnabled(false);
-		txtConsulta.setBounds(100, 27, 100, 20);
-		contentPanel.add(txtConsulta);
-		txtConsulta.setColumns(10);
-		
-		JPanel panel_EnfermedadNoSelected = new JPanel();
-		panel_EnfermedadNoSelected.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Enfermedades", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		panel_EnfermedadNoSelected.setBounds(10, 117, 250, 200);
-		contentPanel.add(panel_EnfermedadNoSelected);
-		panel_EnfermedadNoSelected.setLayout(new BorderLayout(0, 0));
-		
-		JScrollPane scrollPane = new JScrollPane();
-		panel_EnfermedadNoSelected.add(scrollPane, BorderLayout.CENTER);
-		
-		modeloNoSelected = new DefaultTableModel();
-		String headers[] = {"Nombre", "Codigo"};
-		modeloNoSelected.setColumnIdentifiers(headers);
-		tableEnfermedadNoSelected = new JTable();
-		tableEnfermedadNoSelected.getTableHeader().setReorderingAllowed(false);
-		scrollPane.setViewportView(tableEnfermedadNoSelected);
-		tableEnfermedadNoSelected.setModel(modeloNoSelected);
-		
-		btnAgregar = new JButton("Agregar >");
-		btnAgregar.setEnabled(false);
-		btnAgregar.setBounds(270, 180, 80, 23);
-		contentPanel.add(btnAgregar);
-		
-		JLabel lblNewLabel_5 = new JLabel("ID Enfermedad:");
-		lblNewLabel_5.setBounds(10, 330, 90, 14);
-		contentPanel.add(lblNewLabel_5);
-		
-		txtEnfermedad = new JTextField();
-		txtEnfermedad.setBounds(100, 327, 100, 20);
-		contentPanel.add(txtEnfermedad);
-		txtEnfermedad.setColumns(10);
-		
-		JButton btnBuscar = new JButton("Buscar");
-		btnBuscar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				consultEnfermedad = Clinica.getInstance().obtenerEnfermedadById(txtEnfermedad.getText());
-				if (consultEnfermedad != null) {
-					btnAgregar.setEnabled(true);
-					JOptionPane.showMessageDialog(null, "Enfermedad encontrada: " + consultEnfermedad.getNombreEnfermedad());
-				} else {
-					JOptionPane.showMessageDialog(null, "Enfermedad no encontrada", "Error", JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
-		btnBuscar.setBounds(210, 326, 80, 23);
-		contentPanel.add(btnBuscar);
-		
-		btnAgregar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (consultEnfermedad != null && !enfermedadesSelected.contains(consultEnfermedad)) {
-					enfermedadesSelected.add(consultEnfermedad);
-					btnAgregar.setEnabled(false);
-					txtEnfermedad.setText("");
-					JOptionPane.showMessageDialog(null, "Enfermedad agregada a la consulta");
-				}
-			}
-		});
-		
-		JPanel buttonPane = new JPanel();
-		buttonPane.setBackground(SystemColor.info);
-		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		
-		JButton btnRegistrar = new JButton("Registrar");
-		btnRegistrar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String idMedico = txtCodMed.getText().trim();
-				String idPaciente = txtCodePaciente.getText().trim();
-				
-				if (idMedico.isEmpty() || idPaciente.isEmpty()) {
-					JOptionPane.showMessageDialog(null, "Complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				
-				Consultas consultaReg = new Consultas(txtConsulta.getText(), (Date) spnFecha.getValue(),
-						enfermedadesSelected,
-						Clinica.getInstance().obtenerMedicoById(idMedico),
-						Clinica.getInstance().obtenerPacienteById(idPaciente));
-				Clinica.getInstance().agregarConsulta(consultaReg);
-				clean();
-				JOptionPane.showMessageDialog(null, "Consulta registrada correctamente", "�xito", JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
-		buttonPane.add(btnRegistrar);
-		
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		});
-		buttonPane.add(cancelButton);
-		
-		loadTable();
-	}
-	
-	public void loadTable() {
-		modeloNoSelected.setRowCount(0);
-		for (Enfermedad enfermedad : Clinica.getInstance().getMisEnfermedades()) {
-			modeloNoSelected.addRow(new Object[]{enfermedad.getNombreEnfermedad(), enfermedad.getIdEnfermedad()});
-		}
-	}
-	
-	public void clean() {
-		txtCodePaciente.setText("");
-		txtEnfermedad.setText("");
-		enfermedadesSelected.clear();
-		Clinica.generadorCodigoConsulta++;
-		txtConsulta.setText("Consulta - " + Clinica.generadorCodigoConsulta);
-		
-		// Limpiamos el m�dico solo si NO es un m�dico usando el sistema
-		if (usuarioActual == null || !usuarioActual.esMedico()) {
-			txtCodMed.setText("");
-		}
-	}
+        setTitle("Registrar Consulta Médica");
+        setBounds(100, 100, 620, 520);
+        setResizable(false);
+        setModal(true);
+        getContentPane().setLayout(new BorderLayout());
+        contentPanel.setBackground(SystemColor.info);
+        contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+        contentPanel.setLayout(null);
+
+        // ── Código de consulta ───────────────────────────────────
+        JLabel lblCodConsulta = new JLabel("Código Consulta:");
+        lblCodConsulta.setBounds(10, 15, 110, 14);
+        contentPanel.add(lblCodConsulta);
+
+        txtConsulta = new JTextField("Consulta-" + Clinica.generadorCodigoConsulta);
+        txtConsulta.setEnabled(false);
+        txtConsulta.setBackground(new Color(230, 230, 230));
+        txtConsulta.setBounds(125, 12, 120, 20);
+        contentPanel.add(txtConsulta);
+
+        // ── Cédula del Médico ────────────────────────────────────
+        JLabel lblMed = new JLabel("Cédula Médico:");
+        lblMed.setBounds(10, 45, 110, 14);
+        contentPanel.add(lblMed);
+
+        txtCedulaMed = new JTextField();
+        txtCedulaMed.setBounds(125, 42, 120, 20);
+        contentPanel.add(txtCedulaMed);
+
+        // Si el usuario es médico, autocompleta su cédula
+        if (usuarioActual != null && usuarioActual.esMedico()) {
+            Medico medActual = Clinica.getInstance()
+                .obtenerMedicoById(usuarioActual.getIdUsuario());
+            if (medActual != null) {
+                txtCedulaMed.setText(medActual.getCedula());
+                txtCedulaMed.setEnabled(false);
+            }
+        }
+
+        // ── Cédula del Paciente ──────────────────────────────────
+        JLabel lblPac = new JLabel("Cédula Paciente:");
+        lblPac.setBounds(270, 45, 110, 14);
+        contentPanel.add(lblPac);
+
+        txtCedulaPaciente = new JTextField();
+        txtCedulaPaciente.setBounds(385, 42, 120, 20);
+        contentPanel.add(txtCedulaPaciente);
+
+        // ── Fecha ────────────────────────────────────────────────
+        JLabel lblFecha = new JLabel("Fecha:");
+        lblFecha.setBounds(10, 75, 60, 14);
+        contentPanel.add(lblFecha);
+
+        spnFecha = new JSpinner();
+        spnFecha.setBounds(125, 72, 120, 20);
+        spnFecha.setModel(new SpinnerDateModel(
+            new Date(), null, null, Calendar.DAY_OF_YEAR));
+        contentPanel.add(spnFecha);
+
+        // ── Diagnóstico ──────────────────────────────────────────
+        JLabel lblDiag = new JLabel("Diagnóstico:");
+        lblDiag.setBounds(270, 75, 90, 14);
+        contentPanel.add(lblDiag);
+
+        txtDiagnostico = new JTextField();
+        txtDiagnostico.setBounds(365, 72, 220, 20);
+        contentPanel.add(txtDiagnostico);
+
+        // ── Tabla de enfermedades disponibles ────────────────────
+        JPanel panelEnfs = new JPanel(new BorderLayout());
+        panelEnfs.setBorder(new TitledBorder(
+            UIManager.getBorder("TitledBorder.border"),
+            "Enfermedades disponibles",
+            TitledBorder.LEADING, TitledBorder.TOP,
+            null, Color.BLACK));
+        panelEnfs.setBounds(10, 110, 250, 220);
+        contentPanel.add(panelEnfs);
+
+        modeloTabla = new DefaultTableModel(new String[]{"Nombre", "Código"}, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tableEnfermedades = new JTable(modeloTabla);
+        tableEnfermedades.getTableHeader().setReorderingAllowed(false);
+        panelEnfs.add(new JScrollPane(tableEnfermedades), BorderLayout.CENTER);
+
+        // ── Enfermedades seleccionadas ───────────────────────────
+        JPanel panelSel = new JPanel(new BorderLayout());
+        panelSel.setBorder(new TitledBorder(
+            UIManager.getBorder("TitledBorder.border"),
+            "Enfermedades en consulta",
+            TitledBorder.LEADING, TitledBorder.TOP,
+            null, Color.BLACK));
+        panelSel.setBounds(360, 110, 220, 220);
+        contentPanel.add(panelSel);
+
+        DefaultTableModel modeloSel = new DefaultTableModel(
+            new String[]{"Nombre", "Código"}, 0) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        JTable tablaSel = new JTable(modeloSel);
+        panelSel.add(new JScrollPane(tablaSel), BorderLayout.CENTER);
+
+        // ── Botón Agregar ────────────────────────────────────────
+        btnAgregar = new JButton("Agregar >");
+        btnAgregar.setEnabled(false);
+        btnAgregar.setBounds(268, 200, 88, 23);
+        contentPanel.add(btnAgregar);
+
+        btnAgregar.addActionListener(e -> {
+            int fila = tableEnfermedades.getSelectedRow();
+            if (fila < 0) {
+                JOptionPane.showMessageDialog(this,
+                    "Seleccione una enfermedad de la tabla",
+                    "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            // Obtener enfermedad seleccionada de la tabla
+            String idEnf = (String) modeloTabla.getValueAt(fila, 1);
+            Enfermedad enf = Clinica.getInstance().obtenerEnfermedadById(idEnf);
+            if (enf != null && !enfermedadesSelected.contains(enf)) {
+                enfermedadesSelected.add(enf);
+                modeloSel.addRow(new Object[]{
+                    enf.getNombreEnfermedad(), enf.getIdEnfermedad()});
+            }
+        });
+
+        // Habilitar botón al seleccionar fila
+        tableEnfermedades.getSelectionModel().addListSelectionListener(
+            e -> btnAgregar.setEnabled(tableEnfermedades.getSelectedRow() >= 0));
+
+        // ── Buscar enfermedad por ID ─────────────────────────────
+        JLabel lblBuscar = new JLabel("Buscar por ID:");
+        lblBuscar.setBounds(10, 340, 90, 14);
+        contentPanel.add(lblBuscar);
+
+        txtEnfermedad = new JTextField();
+        txtEnfermedad.setBounds(105, 337, 100, 20);
+        contentPanel.add(txtEnfermedad);
+
+        JButton btnBuscar = new JButton("Buscar");
+        btnBuscar.setBounds(215, 336, 80, 23);
+        btnBuscar.addActionListener(e -> {
+            String idBuscar = txtEnfermedad.getText().trim();
+            if (idBuscar.isEmpty()) return;
+            consultEnfermedad = Clinica.getInstance().obtenerEnfermedadById(idBuscar);
+            if (consultEnfermedad != null) {
+                // Seleccionar en la tabla
+                for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                    if (modeloTabla.getValueAt(i, 1).equals(idBuscar)) {
+                        tableEnfermedades.setRowSelectionInterval(i, i);
+                        break;
+                    }
+                }
+                btnAgregar.setEnabled(true);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Enfermedad no encontrada", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        contentPanel.add(btnBuscar);
+
+        // ── Botones finales ──────────────────────────────────────
+        JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPane.setBackground(SystemColor.info);
+        getContentPane().add(buttonPane, BorderLayout.SOUTH);
+
+        JButton btnRegistrar = new JButton("Registrar Consulta");
+        btnRegistrar.setBackground(new Color(70, 130, 180));
+        btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setFocusPainted(false);
+        btnRegistrar.addActionListener(e -> {
+            String cedulaMed = txtCedulaMed.getText().trim();
+            String cedulaPac = txtCedulaPaciente.getText().trim();
+            String diagnostico = txtDiagnostico.getText().trim();
+
+            if (cedulaMed.isEmpty() || cedulaPac.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Complete la cédula del médico y del paciente",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Buscar médico y paciente por cédula
+            Medico   medico   = Clinica.getInstance().obtenerMedicoById(cedulaMed);
+            Paciente paciente = Clinica.getInstance().obtenerPacienteById(cedulaPac);
+
+            if (medico == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Médico no encontrado con esa cédula",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (paciente == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Paciente no encontrado con esa cédula",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Crear consulta
+            Consultas nuevaConsulta = new Consultas(
+                txtConsulta.getText(),
+                (Date) spnFecha.getValue(),
+                enfermedadesSelected,
+                medico,
+                paciente);
+            nuevaConsulta.setDiagnostico(diagnostico);
+
+            Clinica.getInstance().agregarConsulta(nuevaConsulta);
+            clean(modeloSel);
+
+            JOptionPane.showMessageDialog(this,
+                "Consulta registrada correctamente",
+                "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        });
+        buttonPane.add(btnRegistrar);
+
+        JButton btnCancelar = new JButton("Cancelar");
+        btnCancelar.addActionListener(e -> dispose());
+        buttonPane.add(btnCancelar);
+
+        loadTable();
+    }
+
+    public void loadTable() {
+        modeloTabla.setRowCount(0);
+        for (Enfermedad e : Clinica.getInstance().getMisEnfermedades())
+            modeloTabla.addRow(new Object[]{
+                e.getNombreEnfermedad(), e.getIdEnfermedad()});
+    }
+
+    public void clean(DefaultTableModel modeloSel) {
+        txtCedulaPaciente.setText("");
+        txtEnfermedad.setText("");
+        txtDiagnostico.setText("");
+        enfermedadesSelected.clear();
+        modeloSel.setRowCount(0);
+        Clinica.generadorCodigoConsulta++;
+        txtConsulta.setText("Consulta-" + Clinica.generadorCodigoConsulta);
+        if (usuarioActual == null || !usuarioActual.esMedico())
+            txtCedulaMed.setText("");
+    }
 }
