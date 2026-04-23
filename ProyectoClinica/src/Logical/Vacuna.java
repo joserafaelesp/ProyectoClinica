@@ -1,38 +1,38 @@
 package Logical;
 
+/**
+ * Vacuna.java — actualizada según modelo relacional.
+ * Campos: Id_Vacuna, NombreVacuna, Descripcion
+ */
 public class Vacuna {
 
-	private String idVacuna;
-	private String nombreVacuna;
-	private Paciente idPaciente;
-	private int cantidad;
-	private String Descripcion;
+    private String idVacuna;
+    private String nombreVacuna;
+    private String descripcion;
 
-	public Vacuna(String idVacuna, String nombreVacuna, Paciente idPaciente, int cantidad, String Descripcion) {
-		super();
-		this.idVacuna = idVacuna;
-		this.nombreVacuna = nombreVacuna;
-		this.idPaciente = idPaciente;
-		this.cantidad = cantidad;
-		this.Descripcion = Descripcion;
-	}
+    public Vacuna(String idVacuna, String nombreVacuna, String descripcion) {
+        this.idVacuna     = idVacuna;
+        this.nombreVacuna = nombreVacuna;
+        this.descripcion  = descripcion;
+    }
 
-	@Override
-	public String toString() {
-		return idVacuna + "," + nombreVacuna + "," + 
-			   (idPaciente != null ? idPaciente.getIdPaciente() : "null") + "," + 
-			   cantidad + "," + Descripcion;
-	}
+    // Constructor compatibilidad con código anterior
+    public Vacuna(String idVacuna, String nombreVacuna, Object ignorado,
+                  int cantidadIgnorada, String descripcion) {
+        this(idVacuna, nombreVacuna, descripcion);
+    }
 
-	// Getters y Setters...
-	public String getIdVacuna() { return idVacuna; }
-	public void setIdVacuna(String idVacuna) { this.idVacuna = idVacuna; }
-	public String getNombreVacuna() { return nombreVacuna; }
-	public void setNombreVacuna(String nombreVacuna) { this.nombreVacuna = nombreVacuna; }
-	public Paciente getIdPaciente() { return idPaciente; }
-	public void setIdPaciente(Paciente idPaciente) { this.idPaciente = idPaciente; }
-	public int getCantidad() { return cantidad; }
-	public void setCantidad(int cantidad) { this.cantidad = cantidad; }
-	public String getDescripcion() { return Descripcion; }
-	public void setDescripcion(String descripcion) { Descripcion = descripcion; }
+    public String getIdVacuna()              { return idVacuna; }
+    public void   setIdVacuna(String id)     { this.idVacuna = id; }
+    public String getNombreVacuna()          { return nombreVacuna; }
+    public void   setNombreVacuna(String n)  { this.nombreVacuna = n; }
+    public String getDescripcion()           { return descripcion; }
+    public void   setDescripcion(String d)   { this.descripcion = d; }
+    // compatibilidad
+    public int    getCantidad()              { return 0; }
+
+    @Override
+    public String toString() {
+        return idVacuna + "," + nombreVacuna + "," + descripcion;
+    }
 }

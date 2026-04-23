@@ -17,7 +17,6 @@ public abstract class Persona {
         this.genero = genero;
         this.fechaNacimiento = fechaNacimiento;
         this.telefono = telefono;
-        this.vivienda = vivienda;
     }
 
     protected String formatearFecha() {
@@ -35,5 +34,4 @@ public abstract class Persona {
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
     public Vivienda getViviend() { return vivienda; }
-    public void setViviend(Vivienda vivienda) { this.vivienda = vivienda; }
 }

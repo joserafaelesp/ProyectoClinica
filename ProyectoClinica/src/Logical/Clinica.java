@@ -3,144 +3,154 @@ package Logical;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clinica.java — versión final adaptada al DER y Modelo Relacional entregados.
+ *
+ * CAMBIOS PRINCIPALES vs versión anterior:
+ *  - Persona es superclase real con tabla propia
+ *  - Medico/Paciente insertan primero en PERSONA luego en su tabla
+ *  - Examen es una entidad nueva con su propio DAO
+ *  - Secretaria y Administrador son solo roles dentro de USUARIO
+ *  - CITA usa cedula del médico como FK (no Id_Medico)
+ *  - HISTORIAL usa cedula del paciente como FK
+ */
 public class Clinica {
-    
-    // TODAS las listas de la aplicaci�n
-    private ArrayList<Medico> misMedico;
-    private ArrayList<Paciente> misPaciente;
-    private ArrayList<Usuario> misUsuarios;
-    private ArrayList<Vivienda> misViviendas;
-    private ArrayList<Vacuna> misVacunas;
-    private ArrayList<Enfermedad> misEnfermedades;
-    private ArrayList<Cita> misCitas;
-    private ArrayList<Consultas> misConsultas;
-    
+
+    private final MedicoDAO            medicoDAO     = new MedicoDAO();
+    private final PacienteDAO          pacienteDAO   = new PacienteDAO();
+    private final CitaDAO              citaDAO       = new CitaDAO();
+    private final ConsultaDAO          consultaDAO   = new ConsultaDAO();
+    private final VacunaDAO            vacunaDAO     = new VacunaDAO();
+    private final EnfermedadDAO        enfermedadDAO = new EnfermedadDAO();
+    private final ViviendaDAO          viviendaDAO   = new ViviendaDAO();
+    private final UsuarioDAO           usuarioDAO    = new UsuarioDAO();
+    private final HistorialDAO         historialDAO  = new HistorialDAO();
+    private final ExamenDAO            examenDAO     = new ExamenDAO();
+    private final GravedadenfermedadDAO gravedadDAO  = new GravedadenfermedadDAO();
     private static Clinica clinica = null;
 
-    // Generadores de c�digos autom�ticos
-    public static int generadorCodigoidMedico = 1;
-    public static int generadorCodigoPaciente = 1;
-    public static int generadorCodigoVivienda = 1;
-    public static int generadorCodigoUser = 1;
-    public static int generadorCodigoVacuna = 1;
+    public static int generadorCodigoCita       = 1;
+    public static int generadorCodigoConsulta   = 1;
     public static int generadorCodigoEnfermedad = 1;
-    public static int generadorCodigoCita = 1;
-    public static int generadorCodigoConsulta = 1;
-    
-    private Clinica() {
-        this.misMedico = new ArrayList<>();
-        this.misPaciente = new ArrayList<>();
-        this.misUsuarios = new ArrayList<>();
-        this.misViviendas = new ArrayList<>();
-        this.misVacunas = new ArrayList<>();
-        this.misEnfermedades = new ArrayList<>();
-        this.misCitas = new ArrayList<>();
-        this.misConsultas = new ArrayList<>();
-        cargarTodosLosDatos();
-    }
-    
-    public static synchronized Clinica getInstance(){
-        if(clinica == null){
-            clinica = new Clinica();
-        }		
+    public static int generadorCodigoidMedico   = 1;
+    public static int generadorCodigoVacuna     = 1;
+    public static int generadorCodigoVivienda   = 1;
+    public static int generadorCodigoUser       = 1;
+    public static int generadorCodigoPaciente   = 1;
+    public static int generadorCodigoExamen     = 1;
+
+    private Clinica() { actualizarGeneradores(); }
+
+    public static Clinica getInstance() {
+        if (clinica == null) clinica = new Clinica();
         return clinica;
     }
-    
-    private void cargarTodosLosDatos() {
-        // El orden es importante (Ej: Los pacientes necesitan que las viviendas ya est�n cargadas)
-        misUsuarios = ArchivoManager.leerUsuarios();
-        misViviendas = ArchivoManager.leerViviendas();
-        misMedico = ArchivoManager.leerMedicos(this);
-        misPaciente = ArchivoManager.leerPacientes(this);
-        misVacunas = ArchivoManager.leerVacunas(this);
-        misEnfermedades = ArchivoManager.leerEnfermedades(this);
-        misCitas = ArchivoManager.leerCitas(this);
-        misConsultas = ArchivoManager.leerConsultas(this);
-        
-        actualizarGeneradores();
-    }
-    
+
     private void actualizarGeneradores() {
-        // Lee el n�mero de ID de los txt cargados para continuar la secuencia correctamente
-        generadorCodigoUser = misUsuarios.stream().mapToInt(u -> extraerNumero(u.getIdUsuario())).max().orElse(0) + 1;
-        generadorCodigoVivienda = misViviendas.stream().mapToInt(v -> extraerNumero(v.getIdVivienda())).max().orElse(0) + 1;
-        generadorCodigoidMedico = misMedico.stream().mapToInt(m -> extraerNumero(m.getIdMedico())).max().orElse(0) + 1;
-        generadorCodigoPaciente = misPaciente.stream().mapToInt(p -> extraerNumero(p.getIdPaciente())).max().orElse(0) + 1;
-        generadorCodigoVacuna = misVacunas.stream().mapToInt(v -> extraerNumero(v.getIdVacuna())).max().orElse(0) + 1;
-        generadorCodigoEnfermedad = misEnfermedades.stream().mapToInt(e -> extraerNumero(e.getIdEnfermedad())).max().orElse(0) + 1;
-        generadorCodigoCita = misCitas.stream().mapToInt(c -> extraerNumero(c.getIdCita())).max().orElse(0) + 1;
-        generadorCodigoConsulta = misConsultas.stream().mapToInt(c -> extraerNumero(c.getIdConsulta())).max().orElse(0) + 1;
+        generadorCodigoidMedico   = medicoDAO.obtenerMaxNumero("MEDICO",      "Id_Medico",     "Medico-")      + 1;
+        generadorCodigoPaciente   = pacienteDAO.obtenerMaxNumero("PACIENTE",  "Id_Paciente",   "Paciente-")    + 1;
+        generadorCodigoCita       = citaDAO.obtenerMaxNumero("CITA",          "Id_Cita",       "Cita-")        + 1;
+        generadorCodigoConsulta   = consultaDAO.obtenerMaxNumero("CONSULTA",  "Id_Consulta",   "Consulta-")    + 1;
+        generadorCodigoUser       = usuarioDAO.obtenerMaxNumero("USUARIO",    "Id_Usuario",    "User-")        + 1;
+        generadorCodigoVacuna     = vacunaDAO.obtenerMaxNumero("VACUNA",      "Id_Vacuna",     "Vacuna-")      + 1;
+        generadorCodigoVivienda   = viviendaDAO.obtenerMaxNumero("VIVIENDA",  "Id_Vivienda",   "Vivienda-")    + 1;
+        generadorCodigoEnfermedad = enfermedadDAO.obtenerMaxNumero("ENFERMEDAD","Id_Enfermedad","Enfermedad-") + 1;
+        generadorCodigoExamen     = examenDAO.obtenerMaxNumero("EXAMEN",      "Id_Examen",     "Examen-")      + 1;
     }
 
-    private int extraerNumero(String id) {
-        try { return Integer.parseInt(id.replaceAll("\\D+", "")); } 
-        catch (Exception e) { return 0; }
+    // ── MÉDICO ──────────────────────────────────────────────────
+    public void agregarMedico(Medico medico) {
+        medicoDAO.insertar(medico);
+        generadorCodigoidMedico++;
     }
-    
-    // ================= CRUD EN MEMORIA Y GUARDADO =================
-    
-    // Usuarios
-    public void agregarUsuario(Usuario u) { misUsuarios.add(u); ArchivoManager.guardarUsuarios(misUsuarios); }
-    public ArrayList<Usuario> getMisUsuarios() { return misUsuarios; }
-    public Usuario buscarUsuarioPorCodigo(String id) { return misUsuarios.stream().filter(u -> u.getIdUsuario().equals(id)).findFirst().orElse(null); }
-    public void modificarUsuario(String id, Usuario u) { ArchivoManager.guardarUsuarios(misUsuarios); }
-    public void borrarUsuario(String id) { misUsuarios.removeIf(u -> u.getIdUsuario().equals(id)); ArchivoManager.guardarUsuarios(misUsuarios); }
+    public void modificarMedico(String cedula, Medico medico) { medicoDAO.actualizar(medico); }
+    public void borrarMedico(String cedula)                    { medicoDAO.eliminar(cedula); }
+    public ArrayList<Medico> getMisMedico()                    { return medicoDAO.listarTodos(); }
+    public Medico obtenerMedicoById(String id)                 { return medicoDAO.buscarPorId(id); }
+    public Medico obtenerMedicoXnombre(String nombre)          { return medicoDAO.buscarPorNombre(nombre); }
 
-    // Viviendas
-    public void agregarVivienda(Vivienda v) { misViviendas.add(v); ArchivoManager.guardarViviendas(misViviendas); }
-    public ArrayList<Vivienda> getMisViviendas() { return misViviendas; }
-    public Vivienda obtenervivienda(String id) { return misViviendas.stream().filter(v -> v.getIdVivienda().equals(id)).findFirst().orElse(null); }
-    public void modificarVivienda(String id, Vivienda v) { ArchivoManager.guardarViviendas(misViviendas); }
-    public void borrarVivienda(String id) { misViviendas.removeIf(v -> v.getIdVivienda().equals(id)); ArchivoManager.guardarViviendas(misViviendas); }
+    // ── PACIENTE ─────────────────────────────────────────────────
+    public void agregarPaciente(Paciente paciente) {
+        pacienteDAO.insertar(paciente);
+        generadorCodigoPaciente++;
+        // Crear historial médico automáticamente al registrar paciente
+        String idHistorial = "HIST-" + paciente.getIdPaciente();
+        historialDAO.insertar(idHistorial, paciente.getCedula());
+    }
+    public void modificarPaciente(String cedula, Paciente paciente) { pacienteDAO.actualizar(paciente); }
+    public void borrarPaciente(String cedula)                        { pacienteDAO.eliminar(cedula); }
+    public ArrayList<Paciente> getMisPaciente()                      { return pacienteDAO.listarTodos(); }
+    public Paciente obtenerPacienteById(String id)                   { return pacienteDAO.buscarPorId(id); }
+    public Paciente obtenerPacienteXnombre(String nombre)            { return pacienteDAO.buscarPorNombre(nombre); }
 
-    // M�dicos
-    public void agregarMedico(Medico m) { misMedico.add(m); ArchivoManager.guardarMedicos(misMedico); }
-    public ArrayList<Medico> getMisMedico() { return misMedico; }
-    public Medico obtenerMedicoById(String id) { return misMedico.stream().filter(m -> m.getIdMedico().equals(id)).findFirst().orElse(null); }
-    public Medico obtenerMedicoXnombre(String nombre) { return misMedico.stream().filter(m -> m.getNombre().equalsIgnoreCase(nombre)).findFirst().orElse(null); }
-    public void modificarMedico(String id, Medico m) { ArchivoManager.guardarMedicos(misMedico); }
-    public void borrarMedico(String id) { misMedico.removeIf(m -> m.getIdMedico().equals(id)); ArchivoManager.guardarMedicos(misMedico); }
+    // ── VACUNA ───────────────────────────────────────────────────
+    public void agregarVacuna(Vacuna vacuna) { vacunaDAO.insertar(vacuna); generadorCodigoVacuna++; }
+    public void modificarVacuna(String id, Vacuna v) { vacunaDAO.actualizar(v); }
+    public void borrarVacuna(String id)              { vacunaDAO.eliminar(id); }
+    public ArrayList<Vacuna> getMisVacunas()         { return vacunaDAO.listarTodos(); }
+    public Vacuna obtenervacuna(String id)           { return vacunaDAO.buscarPorId(id); }
 
-    // Pacientes
-    public void agregarPaciente(Paciente p) { misPaciente.add(p); ArchivoManager.guardarPacientes(misPaciente); }
-    public ArrayList<Paciente> getMisPaciente() { return misPaciente; }
-    public Paciente obtenerPacienteById(String id) { return misPaciente.stream().filter(p -> p.getIdPaciente().equals(id)).findFirst().orElse(null); }
-    public void modificarPaciente(String id, Paciente p) { ArchivoManager.guardarPacientes(misPaciente); }
-    public void borrarPaciente(String cedula) { misPaciente.removeIf(p -> p.getCedula().equals(cedula)); ArchivoManager.guardarPacientes(misPaciente); }
+    // ── ENFERMEDAD ───────────────────────────────────────────────
+    public void agregarEnfermedad(Enfermedad e) { enfermedadDAO.insertar(e); generadorCodigoEnfermedad++; }
+    public void modificarEnfermedad(String id, Enfermedad e) { enfermedadDAO.actualizar(e); }
+    public void borrarEnfermedad(String id)                  { enfermedadDAO.eliminar(id); }
+    public ArrayList<Enfermedad> getMisEnfermedades()        { return enfermedadDAO.listarTodos(); }
+    public Enfermedad obtenerEnfermedadById(String id)       { return enfermedadDAO.buscarPorId(id); }
 
-    // Vacunas
-    public void agregarVacuna(Vacuna v) { misVacunas.add(v); ArchivoManager.guardarVacunas(misVacunas); }
-    public ArrayList<Vacuna> getMisVacunas() { return misVacunas; }
-    public Vacuna obtenervacuna(String id) { return misVacunas.stream().filter(v -> v.getIdVacuna().equals(id)).findFirst().orElse(null); }
-    public void modificarVacuna(String id, Vacuna v) { ArchivoManager.guardarVacunas(misVacunas); }
-    public void borrarVacuna(String id) { misVacunas.removeIf(v -> v.getIdVacuna().equals(id)); ArchivoManager.guardarVacunas(misVacunas); }
+    // ── VIVIENDA ─────────────────────────────────────────────────
+    public void agregarVivienda(Vivienda v) { viviendaDAO.insertar(v); generadorCodigoVivienda++; }
+    public void modificarVivienda(String id, Vivienda v) { viviendaDAO.actualizar(v); }
+    public void borrarVivienda(String id)                { viviendaDAO.eliminar(id); }
+    public ArrayList<Vivienda> getMisViviendas()         { return viviendaDAO.listarTodos(); }
+    public Vivienda obtenervivienda(String id)           { return viviendaDAO.buscarPorId(id); }
 
-    // Enfermedades
-    public void agregarEnfermedad(Enfermedad e) { misEnfermedades.add(e); ArchivoManager.guardarEnfermedades(misEnfermedades); }
-    public ArrayList<Enfermedad> getMisEnfermedades() { return misEnfermedades; }
-    public Enfermedad obtenerEnfermedadById(String id) { return misEnfermedades.stream().filter(e -> e.getIdEnfermedad().equals(id)).findFirst().orElse(null); }
-    public void modificarEnfermedad(String id, Enfermedad e) { ArchivoManager.guardarEnfermedades(misEnfermedades); }
-    public void borrarEnfermedad(String id) { misEnfermedades.removeIf(e -> e.getIdEnfermedad().equals(id)); ArchivoManager.guardarEnfermedades(misEnfermedades); }
+    // ── CITA ─────────────────────────────────────────────────────
+    public void agregarCita(Cita cita) { citaDAO.insertar(cita); generadorCodigoCita++; }
+    public void modificarCita(String id, Cita c) { citaDAO.actualizar(c); }
+    public void borrarCita(String id)             { citaDAO.eliminar(id); }
+    public ArrayList<Cita> getMisCitas()          { return citaDAO.listarTodos(); }
 
-    // Citas
-    public void agregarCita(Cita c) { misCitas.add(c); ArchivoManager.guardarCitas(misCitas); }
-    public ArrayList<Cita> getMisCitas() { return misCitas; }
-    public void modificarCita(String id, Cita c) { ArchivoManager.guardarCitas(misCitas); }
-    public void borrarCita(String id) { misCitas.removeIf(c -> c.getIdCita().equals(id)); ArchivoManager.guardarCitas(misCitas); }
+    // ── CONSULTA ─────────────────────────────────────────────────
+    public void agregarConsulta(Consultas consulta) {
+        String idHistorial = historialDAO.buscarPorPaciente(
+            consulta.getPatient() != null ? consulta.getPatient().getCedula() : null);
+        List<String> idsEnfs = new ArrayList<>();
+        if (consulta.getEnfermedades() != null)
+            for (Enfermedad e : consulta.getEnfermedades())
+                idsEnfs.add(e.getIdEnfermedad());
+        consultaDAO.insertarConEnfermedades(consulta, idsEnfs, idHistorial);
+        generadorCodigoConsulta++;
+    }
+    public void insertarConsulta(Consultas c) { agregarConsulta(c); }
+    public void modificarConsulta(String id, Consultas c) { consultaDAO.actualizar(c); }
+    public void borrarConsulta(String id)                 { consultaDAO.eliminar(id); }
+    public ArrayList<Consultas> getMisConsultas()         { return consultaDAO.listarTodos(); }
 
-    // Consultas
-    public void agregarConsulta(Consultas c) { misConsultas.add(c); ArchivoManager.guardarConsultas(misConsultas); }
-    public ArrayList<Consultas> getMisConsultas() { return misConsultas; }
-    public void modificarConsulta(String id, Consultas c) { ArchivoManager.guardarConsultas(misConsultas); }
-    public void borrarConsulta(String id) { misConsultas.removeIf(c -> c.getIdConsulta().equals(id)); ArchivoManager.guardarConsultas(misConsultas); }
-    
-    // M�todo auxiliar hist�rico
+    // ── EXAMEN (NUEVO) ───────────────────────────────────────────
+    public void agregarExamen(Examen examen) { examenDAO.insertar(examen); generadorCodigoExamen++; }
+    public void modificarExamen(String id, Examen e) { examenDAO.actualizar(e); }
+    public void borrarExamen(String id)               { examenDAO.eliminar(id); }
+    public ArrayList<Examen> getMisExamenes()         { return examenDAO.listarTodos(); }
+    public ArrayList<Examen> getExamenesDe(String idConsulta) {
+        return examenDAO.listarPorConsulta(idConsulta);
+    }
+    public Examen obtenerExamenById(String id)        { return examenDAO.buscarPorId(id); }
+
+    // ── USUARIO ──────────────────────────────────────────────────
+    public void agregarUsuario(Usuario u) { usuarioDAO.insertar(u); generadorCodigoUser++; }
+    public void modificarUsuario(String id, Usuario u) { usuarioDAO.actualizar(u); }
+    public void borrarUsuario(String id)               { usuarioDAO.eliminar(id); }
+    public ArrayList<Usuario> getMisUsuarios()         { return usuarioDAO.listarTodos(); }
+    public Usuario buscarUsuarioPorCodigo(String id)   { return usuarioDAO.buscarPorId(id); }
+    public Usuario autenticarUsuario(String user, String pass) { return usuarioDAO.autenticar(user, pass); }
+
+    // ── GRAVEDAD ─────────────────────────────────────────────────
+    public ArrayList<Gravedadenfermedad> getMisGravedades() { return gravedadDAO.listarTodos(); }
+    public void agregarGravedad(Gravedadenfermedad g)       { gravedadDAO.insertar(g); }
+
+    // ── AUXILIARES ───────────────────────────────────────────────
+    public void asignarPacienteMedico(String paciente) {}
     public List<Enfermedad> getEnfermedadesDiagnosticadas() {
-        List<Enfermedad> enfermedadesDiagnosticadas = new ArrayList<>();
-        for (Consultas consulta : misConsultas) {
-            List<Enfermedad> enfConsulta = consulta.getSintomas();
-            if (enfConsulta != null) enfermedadesDiagnosticadas.addAll(enfConsulta);
-        }
-        return enfermedadesDiagnosticadas;
+        return consultaDAO.listarEnfermedadesDiagnosticadas();
     }
 }

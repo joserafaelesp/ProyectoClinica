@@ -1,67 +1,41 @@
 package Logical;
 
-import java.sql.Date;
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * HistoriaMedica.java — actualizada.
+ * En BD: HISTORIAL_MEDICO (Id_Historial PK, cedula FK→PACIENTE)
+ */
 public class HistoriaMedica {
 
-	private ArrayList<Consultas> historialConsultas;
-	private ResumenHistorial resumenPaciente;
+    private String          idHistorial;
+    private Paciente        paciente;
+    private List<Consultas> consultas;
 
-	public HistoriaMedica(ArrayList<Consultas> historialConsultas) {
-		super();
-		this.historialConsultas = historialConsultas != null ? historialConsultas : new ArrayList<>();
-		this.resumenPaciente = new ResumenHistorial("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-	}
+    public HistoriaMedica(String idHistorial, Paciente paciente) {
+        this.idHistorial = idHistorial;
+        this.paciente    = paciente;
+        this.consultas   = new ArrayList<>();
+    }
 
-	public ArrayList<Consultas> getHistorialConsultas() {
-		return historialConsultas;
-	}
+    // Constructor compatibilidad
+    public HistoriaMedica(ArrayList<?> lista) {
+        this.idHistorial = "";
+        this.paciente    = null;
+        this.consultas   = new ArrayList<>();
+    }
 
-	public void setHistorialConsultas(ArrayList<Consultas> historialConsultas) {
-		this.historialConsultas = historialConsultas;
-	}
+    public String          getIdHistorial()             { return idHistorial; }
+    public void            setIdHistorial(String id)   { this.idHistorial = id; }
+    public Paciente        getPaciente()               { return paciente; }
+    public void            setPaciente(Paciente p)     { this.paciente = p; }
+    public List<Consultas> getConsultas()              { return consultas; }
+    public void            setConsultas(List<Consultas> c){ this.consultas = c; }
 
-	public void agregarConsulta(Consultas consult) {
-		if (historialConsultas == null) {
-			historialConsultas = new ArrayList<>();
-		}
-		historialConsultas.add(consult);
-	}
-
-	public ResumenHistorial generarResumen() {
-		ResumenHistorial resumen = new ResumenHistorial("", new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-		for (Consultas consulta : historialConsultas) {
-			if (consulta.getDoctor() != null) {
-				resumen.getMedicos().add(consulta.getDoctor());
-			}
-			if (consulta.getSintomas() != null) {
-				resumen.getEnfermedades().addAll(consulta.getSintomas());
-			}
-			if (consulta.getFechaConsulta() != null) {
-				resumen.getFecha().add(new Date(consulta.getFechaConsulta().getTime()));
-			}
-		}
-		return resumen;
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("HIST_" + System.currentTimeMillis());
-		if (historialConsultas != null) {
-			for (Consultas c : historialConsultas) {
-				sb.append(",").append(c.getIdConsulta());
-			}
-		}
-		return sb.toString();
-	}
-
-	public ResumenHistorial getResumenPaciente() {
-		return resumenPaciente;
-	}
-
-	public void setResumenPaciente(ResumenHistorial resumenPaciente) {
-		this.resumenPaciente = resumenPaciente;
-	}
+    @Override
+    public String toString() {
+        return idHistorial + ","
+            + (paciente != null ? paciente.getCedula() : "null");
+    }
 }

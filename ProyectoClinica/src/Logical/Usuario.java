@@ -1,47 +1,38 @@
 package Logical;
 
+/**
+ * Usuario.java — Secretaria y Administrador se manejan por el campo rol.
+ * No hay clases separadas para cada subtipo.
+ */
 public class Usuario {
 
-	private String idUsuario;
-	private String nombreUser;
-	private String password;
-	private String Rol;
+    private String idUsuario;
+    private String nombreUser;
+    private String password;
+    private String rol;        // 'Administrador' | 'Secretaria' | 'Medico'
 
-	public Usuario(String idUsuario, String nombreUser, String password, String rol) {
-		super();
-		this.idUsuario = idUsuario;
-		this.nombreUser = nombreUser;
-		this.password = password;
-		this.Rol = rol;
-	}
+    public Usuario(String idUsuario, String nombreUser, String password, String rol) {
+        this.idUsuario  = idUsuario;
+        this.nombreUser = nombreUser;
+        this.password   = password;
+        this.rol        = rol;
+    }
 
-	@Override
-	public String toString() {
-		return idUsuario + "," + nombreUser + "," + password + "," + Rol;
-	}
+    public String getIdUsuario()           { return idUsuario; }
+    public void   setIdUsuario(String id)  { this.idUsuario = id; }
+    public String getNombreUser()          { return nombreUser; }
+    public void   setNombreUser(String n)  { this.nombreUser = n; }
+    public String getPassword()            { return password; }
+    public void   setPassword(String p)    { this.password = p; }
+    public String getRol()                 { return rol; }
+    public void   setRol(String r)         { this.rol = r; }
 
-	// Getters y Setters...
-	public String getIdUsuario() { return idUsuario; }
-	public String getNombreUser() { return nombreUser; }
-	public String getPassword() { return password; }
-	public String getRol() { return Rol; }
-	public void setIdUsuario(String idUsuario) { this.idUsuario = idUsuario; }
-	public void setNombreUser(String nombreUser) { this.nombreUser = nombreUser; }
-	public void setPassword(String password) { this.password = password; }
-	public void setRol(String rol) { Rol = rol; }
+    public boolean esAdministrador() { return "Administrador".equals(rol); }
+    public boolean esSecretaria()    { return "Secretaria".equals(rol); }
+    public boolean esMedico()        { return "Medico".equals(rol); }
 
-	public boolean autenticar(String contrasena) {
-		return this.password.equals(contrasena);
-	}
-	public boolean esAdministrador() { return "Administrador".equals(Rol); }
-	public boolean esSecretaria() { return "Secretaria".equals(Rol); }
-	public boolean esMedico() { return "Medico".equals(Rol); }
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
-		Usuario otroUsuario = (Usuario) obj;
-		return this.idUsuario.equals(otroUsuario.getIdUsuario()); 
-	}
+    @Override
+    public String toString() {
+        return idUsuario + "," + nombreUser + "," + rol;
+    }
 }
