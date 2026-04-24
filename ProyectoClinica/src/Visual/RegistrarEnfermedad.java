@@ -7,9 +7,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -19,23 +22,26 @@ import javax.swing.border.EmptyBorder;
 
 import Logical.Clinica;
 import Logical.Enfermedad;
+import Logical.Gravedadenfermedad;
 
 public class RegistrarEnfermedad extends JDialog {
 
-    private final JPanel contentPanel = new JPanel();
-    private JTextField txtCodigo;
-    private JTextField txtNombre;
-    private JTextField txtSintomas;
-    private JButton    btnRegistrar;
-    private Enfermedad miEnfermedad;
-    private boolean    esModificacion = false;
+    private final JPanel              contentPanel = new JPanel();
+    private JTextField                txtCodigo;
+    private JTextField                txtNombre;
+    private JTextField                txtSintomas;
+    private JComboBox<String>         comboGravedad;
+    private JButton                   btnRegistrar;
+    private Enfermedad                miEnfermedad;
+    private boolean                   esModificacion = false;
+    private ArrayList<Gravedadenfermedad> listaGravedad;
 
     public RegistrarEnfermedad(Enfermedad disease, int index) {
         miEnfermedad   = disease;
         esModificacion = (disease != null);
 
         setTitle(esModificacion ? "Actualizar Enfermedad" : "Registrar Enfermedad");
-        setBounds(100, 100, 450, 300);
+        setBounds(100, 100, 450, 340);
         setResizable(false);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(SystemColor.info);
@@ -49,23 +55,22 @@ public class RegistrarEnfermedad extends JDialog {
             lblImg.setIcon(new ImageIcon(
                 RegistrarEnfermedad.class.getResource(
                     "/imagenes/edificio-del-hospital (2).png")));
-        } catch (Exception ex) { /* opcional */ }
-        lblImg.setBounds(356, 152, 68, 65);
+        } catch (Exception ex) {}
+        lblImg.setBounds(356, 180, 68, 65);
         contentPanel.add(lblImg);
 
-        // Código
+        // ── Código ───────────────────────────────────────────────
         JLabel lblCodigo = new JLabel("Codigo:");
         lblCodigo.setBounds(10, 11, 90, 14);
         contentPanel.add(lblCodigo);
 
-        txtCodigo = new JTextField(
-            "Enfermedad-" + Clinica.generadorCodigoEnfermedad);
+        txtCodigo = new JTextField("ENF-" + Clinica.generadorCodigoEnfermedad);
         txtCodigo.setBackground(SystemColor.info);
         txtCodigo.setEnabled(false);
         txtCodigo.setBounds(106, 8, 130, 20);
         contentPanel.add(txtCodigo);
 
-        // Nombre
+        // ── Nombre ───────────────────────────────────────────────
         JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setBounds(10, 42, 90, 14);
         contentPanel.add(lblNombre);
@@ -80,7 +85,7 @@ public class RegistrarEnfermedad extends JDialog {
         txtNombre.setBounds(106, 39, 200, 20);
         contentPanel.add(txtNombre);
 
-        // Síntomas
+        // ── Síntomas ─────────────────────────────────────────────
         JLabel lblSintomas = new JLabel("Sintomas:");
         lblSintomas.setBounds(10, 78, 90, 14);
         contentPanel.add(lblSintomas);
@@ -88,6 +93,19 @@ public class RegistrarEnfermedad extends JDialog {
         txtSintomas = new JTextField();
         txtSintomas.setBounds(106, 75, 219, 65);
         contentPanel.add(txtSintomas);
+
+        // ── Gravedad — ComboBox cargado desde la BD ───────────────
+        JLabel lblGravedad = new JLabel("Gravedad:");
+        lblGravedad.setBounds(10, 158, 90, 14);
+        contentPanel.add(lblGravedad);
+
+        comboGravedad = new JComboBox<>();
+        comboGravedad.setBounds(106, 155, 200, 22);
+        comboGravedad.setToolTipText("Seleccione el nivel de gravedad");
+        contentPanel.add(comboGravedad);
+
+        // Cargar gravedades desde SQL Server
+        cargarGravedades();
 
         // ── Botones ──────────────────────────────────────────────
         JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -102,15 +120,17 @@ public class RegistrarEnfermedad extends JDialog {
 
                 if (nombre.isEmpty() || sintomas.isEmpty()) {
                     JOptionPane.showMessageDialog(null,
-                        "Complete todos los campos",
+                        "Complete todos los campos obligatorios",
                         "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
+                // Obtener gravedad seleccionada
+                Gravedadenfermedad gravedad = obtenerGravedadSeleccionada();
+
                 if (!esModificacion) {
-                    // Constructor correcto: (id, nombre, sintomas, gravedad)
                     Enfermedad aux = new Enfermedad(
-                        txtCodigo.getText(), nombre, sintomas, null);
+                        txtCodigo.getText(), nombre, sintomas, gravedad);
                     Clinica.getInstance().agregarEnfermedad(aux);
                     clean();
                     JOptionPane.showMessageDialog(null,
@@ -119,6 +139,7 @@ public class RegistrarEnfermedad extends JDialog {
                 } else {
                     miEnfermedad.setNombreEnfermedad(nombre);
                     miEnfermedad.setSintomas(sintomas);
+                    miEnfermedad.setGravedad(gravedad);
                     Clinica.getInstance().modificarEnfermedad(
                         miEnfermedad.getIdEnfermedad(), miEnfermedad);
                     dispose();
@@ -137,16 +158,53 @@ public class RegistrarEnfermedad extends JDialog {
         if (miEnfermedad != null) loadEnfermedad();
     }
 
+    /**
+     * Carga los niveles de gravedad desde SQL Server
+     * y los pone en el ComboBox.
+     */
+    private void cargarGravedades() {
+        listaGravedad = Clinica.getInstance().getMisGravedades();
+        DefaultComboBoxModel<String> modelo = new DefaultComboBoxModel<>();
+        modelo.addElement("(sin clasificar)");
+        for (Gravedadenfermedad g : listaGravedad)
+            modelo.addElement(g.getIdGravedad() + " — " + g.getGravedad());
+        comboGravedad.setModel(modelo);
+    }
+
+    /**
+     * Retorna el objeto GravedadEnfermedad seleccionado,
+     * o null si se eligió "sin clasificar".
+     */
+    private Gravedadenfermedad obtenerGravedadSeleccionada() {
+        int idx = comboGravedad.getSelectedIndex();
+        if (idx <= 0 || listaGravedad == null || listaGravedad.isEmpty())
+            return null;
+        return listaGravedad.get(idx - 1); // -1 por el "(sin clasificar)"
+    }
+
     public void clean() {
         Clinica.generadorCodigoEnfermedad++;
-        txtCodigo.setText("Enfermedad-" + Clinica.generadorCodigoEnfermedad);
+        txtCodigo.setText("ENF-" + Clinica.generadorCodigoEnfermedad);
         txtNombre.setText("");
         txtSintomas.setText("");
+        comboGravedad.setSelectedIndex(0);
     }
 
     public void loadEnfermedad() {
         txtCodigo.setText(miEnfermedad.getIdEnfermedad());
         txtNombre.setText(miEnfermedad.getNombreEnfermedad());
         txtSintomas.setText(miEnfermedad.getSintomas());
+        // Seleccionar la gravedad actual si tiene una asignada
+        if (miEnfermedad.getGravedad() != null) {
+            String idGrav = miEnfermedad.getGravedad().getIdGravedad();
+            for (int i = 0; i < comboGravedad.getItemCount(); i++) {
+                if (comboGravedad.getItemAt(i).startsWith(idGrav)) {
+                    comboGravedad.setSelectedIndex(i);
+                    break;
+                }
+            }
+        } else {
+            comboGravedad.setSelectedIndex(0);
+        }
     }
 }

@@ -93,11 +93,7 @@ public class Login extends JFrame {
         contentPane.add(lblLogin);
 
         JButton btnSalir = new JButton("Salir");
-        btnSalir.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        btnSalir.addActionListener(e -> dispose());
         btnSalir.setBounds(237, 174, 89, 23);
         contentPane.add(btnSalir);
 
@@ -106,7 +102,7 @@ public class Login extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
                 String nombreUsuario = txtUser.getText().trim();
-                String claveFinal   = new String(JpassContra.getPassword()).trim();
+                String claveFinal    = new String(JpassContra.getPassword()).trim();
 
                 if (nombreUsuario.isEmpty() || claveFinal.isEmpty()) {
                     JOptionPane.showMessageDialog(null,
@@ -115,7 +111,6 @@ public class Login extends JFrame {
                     return;
                 }
 
-                // ── Autenticar directo contra la BD ─────────────────
                 Usuario usuarioEncontrado =
                     Clinica.getInstance().autenticarUsuario(nombreUsuario, claveFinal);
 
@@ -127,23 +122,49 @@ public class Login extends JFrame {
 
                     PrincipalVisual main = new PrincipalVisual(usuarioEncontrado);
 
-                    // ── Permisos según rol ───────────────────────────
+                    // ════════════════════════════════════════════════
+                    // PERMISOS POR ROL
+                    // ════════════════════════════════════════════════
+
                     if (usuarioEncontrado.esAdministrador()) {
+                        // ── ADMINISTRADOR ────────────────────────────
+                        // Solo gestiona usuarios y configuración general
+                        // No hace consultas ni citas (eso es del médico)
                         main.mConsultas.setVisible(false);
                         main.mCitas.setVisible(false);
 
                     } else if (usuarioEncontrado.esSecretaria()) {
+                        // ── SECRETARIA ───────────────────────────────
+                        // Solo puede:
+                        //   - Registrar pacientes
+                        //   - Ver/modificar/borrar pacientes
+                        //   - Ver médicos (solo lectura)
+                        // NO puede: consultas, citas, vacunas,
+                        //           enfermedades, viviendas, usuarios
+
                         main.mConsultas.setVisible(false);
-                        main.listadoEnfermedad.setVisible(false);
-                        main.listadoVacuna.setVisible(false);
-                        main.crearEnfermedad.setVisible(false);
-                        main.crearVacuna.setVisible(false);
-                        main.crearVivienda.setVisible(false);
-                        main.mRegistro.setVisible(true);
-                        main.listaVivienda.setVisible(false);
+                        main.mCitas.setVisible(false);
                         main.mUSER.setVisible(false);
 
+                        // En REGISTROS: solo "Crear Persona"
+                        // pero RegistrarGeneral solo mostrará opción Paciente
+                        main.crearVacuna.setVisible(false);
+                        main.crearEnfermedad.setVisible(false);
+                        main.crearVivienda.setVisible(false);
+
+                        // En INVENTARIO: solo lista pacientes y lista médicos
+                        main.listadoVacuna.setVisible(false);
+                        main.listadoEnfermedad.setVisible(false);
+                        main.listaVivienda.setVisible(false);
+
+                        // Pasar modo secretaria al listado de médicos
+                        // para que no tenga botones de modificar/borrar
+                        main.setModoSecretaria(true);
+
                     } else if (usuarioEncontrado.esMedico()) {
+                        // ── MÉDICO ───────────────────────────────────
+                        // Puede: consultas, ver pacientes, ver enfermedades/vacunas
+                        // NO puede: citas, viviendas, usuarios
                         main.mCitas.setVisible(false);
                         main.listaVivienda.setVisible(false);
                         main.crearEnfermedad.setVisible(false);
@@ -151,7 +172,8 @@ public class Login extends JFrame {
                         main.mUSER.setVisible(false);
                     }
 
-                    main.lblUser.setText("  " + usuarioEncontrado.getNombreUser() + "  ");
+                    main.lblUser.setText("  " + usuarioEncontrado.getNombreUser()
+                        + " [" + usuarioEncontrado.getRol() + "]  ");
 
                     dim = getToolkit().getScreenSize();
                     main.setResizable(false);

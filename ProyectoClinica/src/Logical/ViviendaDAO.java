@@ -1,7 +1,6 @@
 package Logical;
 import java.sql.*;
 import java.util.ArrayList;
-
 public class ViviendaDAO extends BaseDAO {
     public boolean insertar(Vivienda v) {
         return ejecutar("INSERT INTO VIVIENDA (Id_Vivienda,Direccion) VALUES (?,?)",
@@ -9,14 +8,16 @@ public class ViviendaDAO extends BaseDAO {
     }
     public ArrayList<Vivienda> listarTodos() {
         ArrayList<Vivienda> lista = new ArrayList<>();
-        try (Statement st = con.createStatement();
+        try (Connection con = getConexion();
+             Statement st = con.createStatement();
              ResultSet rs = st.executeQuery("SELECT Id_Vivienda,Direccion FROM VIVIENDA")) {
             while (rs.next()) lista.add(new Vivienda(rs.getString("Id_Vivienda"), rs.getString("Direccion")));
         } catch (SQLException e) { System.out.println("Error ViviendaDAO: " + e.getMessage()); }
         return lista;
     }
     public Vivienda buscarPorId(String id) {
-        try (PreparedStatement ps = con.prepareStatement("SELECT Id_Vivienda,Direccion FROM VIVIENDA WHERE Id_Vivienda=?")) {
+        try (Connection con = getConexion();
+             PreparedStatement ps = con.prepareStatement("SELECT Id_Vivienda,Direccion FROM VIVIENDA WHERE Id_Vivienda=?")) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return new Vivienda(rs.getString("Id_Vivienda"), rs.getString("Direccion"));

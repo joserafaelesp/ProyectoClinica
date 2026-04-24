@@ -62,7 +62,7 @@ public class HacerCita extends JDialog {
         // Código de cita (auto)
         panel.add(new JLabel("Código de cita:"));
         JTextField txtCodigo = new JTextField(
-            "Cita-" + Clinica.generadorCodigoCita);
+            "CITA-" + Clinica.generadorCodigoCita);
         txtCodigo.setEnabled(false);
         txtCodigo.setBackground(new Color(230, 230, 230));
         panel.add(txtCodigo);

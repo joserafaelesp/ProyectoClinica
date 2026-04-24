@@ -1,7 +1,6 @@
 package Logical;
 import java.sql.*;
 import java.util.ArrayList;
-
 public class UsuarioDAO extends BaseDAO {
     public boolean insertar(Usuario u) {
         return ejecutar("INSERT INTO USUARIO (Id_Usuario,NombreUsuario,Contrasena,rol) VALUES (?,?,?,?)",
@@ -9,7 +8,8 @@ public class UsuarioDAO extends BaseDAO {
     }
     public ArrayList<Usuario> listarTodos() {
         ArrayList<Usuario> lista = new ArrayList<>();
-        try (Statement st = con.createStatement();
+        try (Connection con = getConexion();
+             Statement st = con.createStatement();
              ResultSet rs = st.executeQuery("SELECT Id_Usuario,NombreUsuario,Contrasena,rol FROM USUARIO ORDER BY rol")) {
             while (rs.next()) lista.add(new Usuario(rs.getString("Id_Usuario"),
                 rs.getString("NombreUsuario"), rs.getString("Contrasena"), rs.getString("rol")));
@@ -17,7 +17,8 @@ public class UsuarioDAO extends BaseDAO {
         return lista;
     }
     public Usuario buscarPorId(String id) {
-        try (PreparedStatement ps = con.prepareStatement(
+        try (Connection con = getConexion();
+             PreparedStatement ps = con.prepareStatement(
             "SELECT Id_Usuario,NombreUsuario,Contrasena,rol FROM USUARIO WHERE Id_Usuario=?")) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -28,7 +29,8 @@ public class UsuarioDAO extends BaseDAO {
         return null;
     }
     public Usuario autenticar(String nombreUser, String password) {
-        try (PreparedStatement ps = con.prepareStatement(
+        try (Connection con = getConexion();
+             PreparedStatement ps = con.prepareStatement(
             "SELECT Id_Usuario,NombreUsuario,Contrasena,rol FROM USUARIO WHERE NombreUsuario=? AND Contrasena=?")) {
             ps.setString(1, nombreUser); ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
@@ -39,6 +41,7 @@ public class UsuarioDAO extends BaseDAO {
         return null;
     }
     public boolean actualizar(Usuario u) {
+        System.out.println("[DEBUG] UPDATE USUARIO id=" + u.getIdUsuario());
         return ejecutar("UPDATE USUARIO SET NombreUsuario=?,Contrasena=?,rol=? WHERE Id_Usuario=?",
             u.getNombreUser(), u.getPassword(), u.getRol(), u.getIdUsuario());
     }

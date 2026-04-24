@@ -67,7 +67,7 @@ public class HacerConsulta extends JDialog {
         lblCodConsulta.setBounds(10, 15, 110, 14);
         contentPanel.add(lblCodConsulta);
 
-        txtConsulta = new JTextField("Consulta-" + Clinica.generadorCodigoConsulta);
+        txtConsulta = new JTextField("CON-" + Clinica.generadorCodigoConsulta);
         txtConsulta.setEnabled(false);
         txtConsulta.setBackground(new Color(230, 230, 230));
         txtConsulta.setBounds(125, 12, 120, 20);

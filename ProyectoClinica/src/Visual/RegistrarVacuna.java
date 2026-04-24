@@ -57,7 +57,7 @@ public class RegistrarVacuna extends JDialog {
         panel.add(lblId);
 
         txtIdVacuna = new JTextField(
-            "Vacuna-" + Clinica.generadorCodigoVacuna);
+            "VAC-" + Clinica.generadorCodigoVacuna);
         txtIdVacuna.setEditable(false);
         txtIdVacuna.setEnabled(false);
         txtIdVacuna.setBackground(SystemColor.info);
@@ -135,7 +135,7 @@ public class RegistrarVacuna extends JDialog {
 
     public void clean() {
         Clinica.generadorCodigoVacuna++;
-        txtIdVacuna.setText("Vacuna-" + Clinica.generadorCodigoVacuna);
+        txtIdVacuna.setText("VAC" + Clinica.generadorCodigoVacuna);
         txtNombreVacuna.setText("");
         txtDescripcion.setText("");
     }

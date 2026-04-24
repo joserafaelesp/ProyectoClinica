@@ -2,196 +2,211 @@ package Visual;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
 import Logical.Usuario;
 
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import java.awt.SystemColor;
-import javax.swing.JTextField;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.ImageIcon;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.awt.event.ActionEvent;
-import javax.swing.ScrollPaneConstants;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 public class VerMisUsuarios extends JDialog {
 
-	private final JPanel contentPanel = new JPanel();
-	private JTable table;
-	private JTextField txtNombre;
-	private static DefaultTableModel model;
-	private JButton btnBorrar;
-	private JButton btnModificar;
-	private Usuario selected = null;
+    private final JPanel      contentPanel = new JPanel();
+    private JTable            table;
+    private JTextField        txtNombre;
+    private DefaultTableModel model;
+    private JButton           btnBorrar;
+    private JButton           btnModificar;
+    private Usuario           selected = null;
 
-	public static void main(String[] args) {
-		try {
-			VerMisUsuarios dialog = new VerMisUsuarios();
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    // ── Sin main() para evitar que se abra sola ──────────────────
 
-	public VerMisUsuarios() {
-		setTitle("Gestionar Usuarios");
-		setBounds(100, 100, 800, 500);
-		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setBackground(SystemColor.window);
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(null);
+    public VerMisUsuarios() {
+        setTitle("Gestionar Usuarios");
+        setBounds(100, 100, 800, 500);
+        getContentPane().setLayout(new BorderLayout());
+        contentPanel.setBackground(SystemColor.window);
+        contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+        contentPanel.setLayout(null);
 
-		JPanel ListPanel = new JPanel();
-		ListPanel.setBounds(10, 75, 764, 350);
-		contentPanel.add(ListPanel);
-		ListPanel.setLayout(new BorderLayout(0, 0));
+        // ── Tabla ────────────────────────────────────────────────
+        JPanel ListPanel = new JPanel();
+        ListPanel.setBounds(10, 75, 764, 350);
+        contentPanel.add(ListPanel);
+        ListPanel.setLayout(new BorderLayout(0, 0));
 
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		ListPanel.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setHorizontalScrollBarPolicy(
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        ListPanel.add(scrollPane, BorderLayout.CENTER);
 
-		String[] header = {"ID", "Usuario", "Password", "Rol"};
-		model = new DefaultTableModel();
-		model.setColumnIdentifiers(header);
-		table = new JTable();
-		table.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				int index = table.getSelectedRow();
-				if (index >= 0) {
-					btnBorrar.setEnabled(true);
-					btnModificar.setEnabled(true);
-					String idUsuario = table.getValueAt(index, 0).toString();
-					selected = Clinica.getInstance().buscarUsuarioPorCodigo(idUsuario);
-					System.out.println("Usuario seleccionado: " + selected.getNombreUser() + " - ID: " + idUsuario);
-				}
-			}
-		});
-		table.setModel(model);
-		table.getTableHeader().setReorderingAllowed(false);
-		scrollPane.setViewportView(table);
+        model = new DefaultTableModel() {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        model.setColumnIdentifiers(
+            new String[]{"ID", "Username", "Password", "Rol"});
 
-		JPanel OpcionesPanel = new JPanel();
-		OpcionesPanel.setBackground(SystemColor.scrollbar);
-		OpcionesPanel.setBounds(10, 11, 764, 59);
-		contentPanel.add(OpcionesPanel);
-		OpcionesPanel.setLayout(null);
+        table = new JTable();
+        table.setModel(model);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int index = table.getSelectedRow();
+                if (index >= 0) {
+                    btnBorrar.setEnabled(true);
+                    btnModificar.setEnabled(true);
+                    String idUsuario = model.getValueAt(index, 0).toString();
+                    System.out.println("[DEBUG] ID leído de la tabla: " + idUsuario);
+                    selected = Clinica.getInstance().buscarUsuarioPorCodigo(idUsuario);
+                    if (selected != null)
+                        System.out.println("[DEBUG] Usuario encontrado: "
+                            + selected.getIdUsuario() + " / " + selected.getNombreUser());
+                    else
+                        System.out.println("[DEBUG] buscarUsuarioPorCodigo retornó null");
+                }
+            }
+        });
+        scrollPane.setViewportView(table);
 
-		txtNombre = new JTextField();
-		txtNombre.setBounds(53, 28, 653, 20);
-		OpcionesPanel.add(txtNombre);
-		txtNombre.setColumns(10);
+        // ── Barra de búsqueda ────────────────────────────────────
+        JPanel OpcionesPanel = new JPanel();
+        OpcionesPanel.setBackground(SystemColor.scrollbar);
+        OpcionesPanel.setBounds(10, 11, 764, 59);
+        contentPanel.add(OpcionesPanel);
+        OpcionesPanel.setLayout(null);
 
-		JLabel lblNewLabel = new JLabel("Buscar:");
-		lblNewLabel.setBounds(10, 31, 38, 14);
-		OpcionesPanel.add(lblNewLabel);
+        JLabel lblTitulo = new JLabel("Lista de usuarios");
+        lblTitulo.setBounds(10, 3, 694, 14);
+        OpcionesPanel.add(lblTitulo);
 
-		JLabel lblNewLabel_1 = new JLabel("Lista de usuarios");
-		lblNewLabel_1.setBounds(10, 3, 694, 14);
-		OpcionesPanel.add(lblNewLabel_1);
+        JLabel lblBuscar = new JLabel("Buscar:");
+        lblBuscar.setBounds(10, 31, 38, 14);
+        OpcionesPanel.add(lblBuscar);
 
-		JButton btnBuscar = new JButton("");
-		btnBuscar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				buscarPorNombre();
-			}
-		});
-		btnBuscar.setIcon(new ImageIcon(VerMisUsuarios.class.getResource("/imagenes/busqueda-de-lupa (1).png")));
-		btnBuscar.setBounds(716, 28, 38, 22);
-		OpcionesPanel.add(btnBuscar);
-		
-		JPanel buttonPane = new JPanel();
-		buttonPane.setBackground(SystemColor.activeCaption);
-		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		
-		btnModificar = new JButton("Modificar");
-		btnModificar.setEnabled(false);
-		btnModificar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (selected != null) {
-					CrearUser modificar = new CrearUser(selected);
-					modificar.setModal(true);
-					modificar.setVisible(true);
-					cargarDatos();
-					btnBorrar.setEnabled(false);
-					btnModificar.setEnabled(false);
-					selected = null;
-				}
-			}
-		});
-		buttonPane.add(btnModificar);
-		
-		btnBorrar = new JButton("Borrar");
-		btnBorrar.setEnabled(false);
-		btnBorrar.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (selected != null) {
-					int confirmacion = JOptionPane.showConfirmDialog(null, 
-							"�Seguro que desea borrar al usuario " + selected.getNombreUser() + " con ID " + selected.getIdUsuario() + "?",
-							"Confirmaci�n", JOptionPane.YES_NO_OPTION);
-					if (confirmacion == JOptionPane.YES_OPTION) {
-						Clinica.getInstance().borrarUsuario(selected.getIdUsuario());
-						cargarDatos();
-						btnBorrar.setEnabled(false);
-						btnModificar.setEnabled(false);
-						selected = null;
-						JOptionPane.showMessageDialog(null, "Usuario eliminado correctamente", "�xito", JOptionPane.INFORMATION_MESSAGE);
-					}
-				}
-			}
-		});
-		buttonPane.add(btnBorrar);
-		
-		JButton cancelButton = new JButton("Salir");
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		});
-		buttonPane.add(cancelButton);
+        txtNombre = new JTextField();
+        txtNombre.setBounds(53, 28, 653, 20);
+        OpcionesPanel.add(txtNombre);
+        txtNombre.setColumns(10);
 
-		cargarDatos();
-	}
+        JButton btnBuscar = new JButton("");
+        try {
+            btnBuscar.setIcon(new ImageIcon(
+                VerMisUsuarios.class.getResource(
+                    "/imagenes/busqueda-de-lupa (1).png")));
+        } catch (Exception ex) { btnBuscar.setText("Buscar"); }
+        btnBuscar.setBounds(716, 28, 38, 22);
+        btnBuscar.addActionListener(e -> buscarPorNombre());
+        OpcionesPanel.add(btnBuscar);
 
-	private void cargarDatos() {
-		ArrayList<Usuario> listaUsuarios = Clinica.getInstance().getMisUsuarios();
-		model.setRowCount(0);
-		for (Usuario usuario : listaUsuarios) {
-			model.addRow(new Object[]{usuario.getIdUsuario(), usuario.getNombreUser(), usuario.getPassword(), usuario.getRol()});
-		}
-		System.out.println("Usuarios cargados: " + listaUsuarios.size());
-	}
+        // ── Botones inferiores ───────────────────────────────────
+        JPanel buttonPane = new JPanel();
+        buttonPane.setBackground(SystemColor.activeCaption);
+        buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-	private void buscarPorNombre() {
-		String nombreABuscar = txtNombre.getText().trim();
-		boolean encontrado = false;
-		model.setRowCount(0);
-		ArrayList<Usuario> listaUsuarios = Clinica.getInstance().getMisUsuarios();
+        btnModificar = new JButton("Modificar");
+        btnModificar.setEnabled(false);
+        btnModificar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (selected != null) {
+                    // Pasar el objeto Usuario completo a CrearUser
+                    CrearUser modificar = new CrearUser(selected);
+                    modificar.setModal(true);
+                    modificar.setVisible(true);
+                    // Recargar tabla después de cerrar el diálogo
+                    cargarDatos();
+                    resetSeleccion();
+                }
+            }
+        });
+        buttonPane.add(btnModificar);
 
-		for (Usuario usuario : listaUsuarios) {
-			if (usuario.getNombreUser().toLowerCase().contains(nombreABuscar.toLowerCase())) {
-				model.addRow(new Object[]{usuario.getIdUsuario(), usuario.getNombreUser(), usuario.getPassword(), usuario.getRol()});
-				encontrado = true;
-			}
-		}
-		if (!encontrado && !nombreABuscar.isEmpty()) {
-			JOptionPane.showMessageDialog(null, "No se encontraron usuarios con ese nombre", "B�squeda", JOptionPane.INFORMATION_MESSAGE);
-			cargarDatos();
-		}
-	}
+        btnBorrar = new JButton("Borrar");
+        btnBorrar.setEnabled(false);
+        btnBorrar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (selected != null) {
+                    int conf = JOptionPane.showConfirmDialog(null,
+                        "¿Seguro que desea borrar al usuario '"
+                        + selected.getNombreUser() + "' con ID "
+                        + selected.getIdUsuario() + "?",
+                        "Confirmación", JOptionPane.YES_NO_OPTION);
+                    if (conf == JOptionPane.YES_OPTION) {
+                        Clinica.getInstance().borrarUsuario(
+                            selected.getIdUsuario());
+                        cargarDatos();
+                        resetSeleccion();
+                        JOptionPane.showMessageDialog(null,
+                            "Usuario eliminado correctamente",
+                            "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+        });
+        buttonPane.add(btnBorrar);
+
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.addActionListener(e -> dispose());
+        buttonPane.add(btnSalir);
+
+        cargarDatos();
+    }
+
+    private void cargarDatos() {
+        ArrayList<Usuario> lista = Clinica.getInstance().getMisUsuarios();
+        model.setRowCount(0);
+        for (Usuario u : lista)
+            model.addRow(new Object[]{
+                u.getIdUsuario(),
+                u.getNombreUser(),
+                u.getPassword(),
+                u.getRol()
+            });
+        System.out.println("Usuarios cargados: " + lista.size());
+    }
+
+    private void buscarPorNombre() {
+        String texto = txtNombre.getText().trim().toLowerCase();
+        model.setRowCount(0);
+        boolean encontrado = false;
+        for (Usuario u : Clinica.getInstance().getMisUsuarios()) {
+            if (u.getNombreUser().toLowerCase().contains(texto)) {
+                model.addRow(new Object[]{
+                    u.getIdUsuario(), u.getNombreUser(),
+                    u.getPassword(), u.getRol()
+                });
+                encontrado = true;
+            }
+        }
+        if (!encontrado && !texto.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                "No se encontraron usuarios con ese nombre",
+                "Búsqueda", JOptionPane.INFORMATION_MESSAGE);
+            cargarDatos();
+        }
+    }
+
+    private void resetSeleccion() {
+        selected = null;
+        btnBorrar.setEnabled(false);
+        btnModificar.setEnabled(false);
+    }
+    
 }

@@ -3,17 +3,6 @@ package Logical;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Clinica.java — versión final adaptada al DER y Modelo Relacional entregados.
- *
- * CAMBIOS PRINCIPALES vs versión anterior:
- *  - Persona es superclase real con tabla propia
- *  - Medico/Paciente insertan primero en PERSONA luego en su tabla
- *  - Examen es una entidad nueva con su propio DAO
- *  - Secretaria y Administrador son solo roles dentro de USUARIO
- *  - CITA usa cedula del médico como FK (no Id_Medico)
- *  - HISTORIAL usa cedula del paciente como FK
- */
 public class Clinica {
 
     private final MedicoDAO            medicoDAO     = new MedicoDAO();
@@ -27,6 +16,7 @@ public class Clinica {
     private final HistorialDAO         historialDAO  = new HistorialDAO();
     private final ExamenDAO            examenDAO     = new ExamenDAO();
     private final GravedadenfermedadDAO gravedadDAO  = new GravedadenfermedadDAO();
+
     private static Clinica clinica = null;
 
     public static int generadorCodigoCita       = 1;
@@ -47,15 +37,15 @@ public class Clinica {
     }
 
     private void actualizarGeneradores() {
-        generadorCodigoidMedico   = medicoDAO.obtenerMaxNumero("MEDICO",      "Id_Medico",     "Medico-")      + 1;
-        generadorCodigoPaciente   = pacienteDAO.obtenerMaxNumero("PACIENTE",  "Id_Paciente",   "Paciente-")    + 1;
-        generadorCodigoCita       = citaDAO.obtenerMaxNumero("CITA",          "Id_Cita",       "Cita-")        + 1;
-        generadorCodigoConsulta   = consultaDAO.obtenerMaxNumero("CONSULTA",  "Id_Consulta",   "Consulta-")    + 1;
-        generadorCodigoUser       = usuarioDAO.obtenerMaxNumero("USUARIO",    "Id_Usuario",    "User-")        + 1;
-        generadorCodigoVacuna     = vacunaDAO.obtenerMaxNumero("VACUNA",      "Id_Vacuna",     "Vacuna-")      + 1;
-        generadorCodigoVivienda   = viviendaDAO.obtenerMaxNumero("VIVIENDA",  "Id_Vivienda",   "Vivienda-")    + 1;
-        generadorCodigoEnfermedad = enfermedadDAO.obtenerMaxNumero("ENFERMEDAD","Id_Enfermedad","Enfermedad-") + 1;
-        generadorCodigoExamen     = examenDAO.obtenerMaxNumero("EXAMEN",      "Id_Examen",     "Examen-")      + 1;
+        generadorCodigoidMedico   = medicoDAO.obtenerMaxNumero("MEDICO",      "Id_Medico",      "MED-")      + 1;
+        generadorCodigoPaciente   = pacienteDAO.obtenerMaxNumero("PACIENTE",  "Id_Paciente",    "PAC-")      + 1;
+        generadorCodigoCita       = citaDAO.obtenerMaxNumero("CITA",          "Id_Cita",        "CITA-")     + 1;
+        generadorCodigoConsulta   = consultaDAO.obtenerMaxNumero("CONSULTA",  "Id_Consulta",    "CON-")      + 1;
+        generadorCodigoUser       = usuarioDAO.obtenerMaxNumero("USUARIO",    "Id_Usuario",     "USR-")      + 1;
+        generadorCodigoVacuna     = vacunaDAO.obtenerMaxNumero("VACUNA",      "Id_Vacuna",      "VAC-")      + 1;
+        generadorCodigoVivienda   = viviendaDAO.obtenerMaxNumero("VIVIENDA",  "Id_Vivienda",    "VIV-")      + 1;
+        generadorCodigoEnfermedad = enfermedadDAO.obtenerMaxNumero("ENFERMEDAD","Id_Enfermedad","ENF-")      + 1;
+        generadorCodigoExamen     = examenDAO.obtenerMaxNumero("EXAMEN",      "Id_Examen",      "EXA-")      + 1;
     }
 
     // ── MÉDICO ──────────────────────────────────────────────────
@@ -73,7 +63,6 @@ public class Clinica {
     public void agregarPaciente(Paciente paciente) {
         pacienteDAO.insertar(paciente);
         generadorCodigoPaciente++;
-        // Crear historial médico automáticamente al registrar paciente
         String idHistorial = "HIST-" + paciente.getIdPaciente();
         historialDAO.insertar(idHistorial, paciente.getCedula());
     }
@@ -126,7 +115,7 @@ public class Clinica {
     public void borrarConsulta(String id)                 { consultaDAO.eliminar(id); }
     public ArrayList<Consultas> getMisConsultas()         { return consultaDAO.listarTodos(); }
 
-    // ── EXAMEN (NUEVO) ───────────────────────────────────────────
+    // ── EXAMEN ───────────────────────────────────────────────────
     public void agregarExamen(Examen examen) { examenDAO.insertar(examen); generadorCodigoExamen++; }
     public void modificarExamen(String id, Examen e) { examenDAO.actualizar(e); }
     public void borrarExamen(String id)               { examenDAO.eliminar(id); }
@@ -134,7 +123,7 @@ public class Clinica {
     public ArrayList<Examen> getExamenesDe(String idConsulta) {
         return examenDAO.listarPorConsulta(idConsulta);
     }
-    public Examen obtenerExamenById(String id)        { return examenDAO.buscarPorId(id); }
+    public Examen obtenerExamenById(String id) { return examenDAO.buscarPorId(id); }
 
     // ── USUARIO ──────────────────────────────────────────────────
     public void agregarUsuario(Usuario u) { usuarioDAO.insertar(u); generadorCodigoUser++; }
@@ -142,13 +131,20 @@ public class Clinica {
     public void borrarUsuario(String id)               { usuarioDAO.eliminar(id); }
     public ArrayList<Usuario> getMisUsuarios()         { return usuarioDAO.listarTodos(); }
     public Usuario buscarUsuarioPorCodigo(String id)   { return usuarioDAO.buscarPorId(id); }
-    public Usuario autenticarUsuario(String user, String pass) { return usuarioDAO.autenticar(user, pass); }
+    public Usuario autenticarUsuario(String user, String pass) {
+        return usuarioDAO.autenticar(user, pass);
+    }
 
     // ── GRAVEDAD ─────────────────────────────────────────────────
     public ArrayList<Gravedadenfermedad> getMisGravedades() { return gravedadDAO.listarTodos(); }
     public void agregarGravedad(Gravedadenfermedad g)       { gravedadDAO.insertar(g); }
 
     // ── AUXILIARES ───────────────────────────────────────────────
+    // Usado por CrearUser para generar ADM-N, MED-N, SEC-N
+    public int obtenerMaxUsuarioPorPrefijo(String prefijo) {
+        return usuarioDAO.obtenerMaxNumero("USUARIO", "Id_Usuario", prefijo);
+    }
+
     public void asignarPacienteMedico(String paciente) {}
     public List<Enfermedad> getEnfermedadesDiagnosticadas() {
         return consultaDAO.listarEnfermedadesDiagnosticadas();
