@@ -34,6 +34,8 @@ public class PrincipalVisual extends JFrame {
     public JMenuItem crearVivienda;
     private Logical.Usuario usuarioActual;
     private boolean modoSecretaria = false;
+    public JMenuItem mntmHistorialCitas;
+    public JMenuItem mntmHistorialConsultas;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -179,11 +181,25 @@ public class PrincipalVisual extends JFrame {
         mInvertario.add(listaVivienda);
 
         // ── UTILIDADES ───────────────────────────────────────────
+     // Creamos el menú una sola vez
         mUtilidades = new JMenu("UTILIDADES");
         menuBar.add(mUtilidades);
+
+        // Primer elemento (Working)
         JMenuItem mntmWorking = new JMenuItem("WORKING");
         stylizeMenuItem(mntmWorking);
         mUtilidades.add(mntmWorking);
+
+        // Segundo elemento (Historial Citas)
+        mntmHistorialCitas = new JMenuItem("Historial de Citas");
+        stylizeMenuItem(mntmHistorialCitas); // Aplicamos tu estilo para que se vea bien
+        // mntmHistorialCitas.setIcon(new ImageIcon(PrincipalVisual.class.getResource("/imagenes/tu_imagen.png")));
+        mUtilidades.add(mntmHistorialCitas);
+
+        // Tercer elemento (Historial Consultas)
+        mntmHistorialConsultas = new JMenuItem("Historial de Consultas");
+        stylizeMenuItem(mntmHistorialConsultas);
+        mUtilidades.add(mntmHistorialConsultas);
 
         // ── USUARIO ──────────────────────────────────────────────
         mUSER = new JMenu("USUARIO");

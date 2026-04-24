@@ -40,93 +40,72 @@ public class RegistrarVivienda extends JDialog {
         esModificacion = (house != null);
 
         setTitle(esModificacion ? "Modificar Vivienda" : "Registrar Vivienda");
-        setBounds(100, 100, 420, 260);
-        setResizable(false);
+        setBounds(100, 100, 450, 300);
         getContentPane().setLayout(new BorderLayout());
+        contentPanel.setBackground(SystemColor.window);
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(new BorderLayout(0, 0));
+        contentPanel.setLayout(null);
 
         JPanel panel = new JPanel();
-        panel.setBackground(SystemColor.info);
-        panel.setBorder(new TitledBorder(
-            esModificacion ? "Datos de la vivienda" : "Nueva vivienda"));
-        contentPanel.add(panel, BorderLayout.CENTER);
+        panel.setBorder(new TitledBorder(null, "Datos de la Vivienda", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        panel.setBackground(SystemColor.window);
+        panel.setBounds(10, 11, 414, 206);
+        contentPanel.add(panel);
         panel.setLayout(null);
 
-        // ── Código (auto, bloqueado) ──────────────────────────────
         JLabel lblCodigo = new JLabel("Codigo:");
-        lblCodigo.setBounds(20, 30, 60, 14);
+        lblCodigo.setBounds(10, 30, 46, 14);
         panel.add(lblCodigo);
 
-        // ✅ CORREGIDO: prefijo VIV- en lugar de "Vivienda - "
         txtCodeVivienda = new JTextField("VIV-" + Clinica.generadorCodigoVivienda);
-        txtCodeVivienda.setBackground(SystemColor.info);
-        txtCodeVivienda.setEnabled(false);
-        txtCodeVivienda.setBounds(85, 27, 110, 22);
+        txtCodeVivienda.setEditable(false);
+        txtCodeVivienda.setBounds(66, 27, 86, 20);
         panel.add(txtCodeVivienda);
+        txtCodeVivienda.setColumns(10);
 
-        // ── Teléfono ─────────────────────────────────────────────
-        JLabel lblTelefono = new JLabel("Telefono:");
-        lblTelefono.setBounds(20, 65, 60, 14);
-        panel.add(lblTelefono);
-
-        txtTelefono = new JTextField();
-        txtTelefono.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if (!Character.isDigit(e.getKeyChar())) e.consume();
-            }
-        });
-        txtTelefono.setBounds(85, 62, 130, 22);
-        panel.add(txtTelefono);
-
-        // ── Dirección ────────────────────────────────────────────
         JLabel lblDireccion = new JLabel("Direccion:");
-        lblDireccion.setBounds(20, 100, 62, 14);
+        lblDireccion.setBounds(10, 70, 60, 14);
         panel.add(lblDireccion);
 
         txtDireccion = new JTextField();
-        txtDireccion.setBounds(85, 97, 220, 22);
+        txtDireccion.setBounds(80, 67, 200, 20);
         panel.add(txtDireccion);
 
-        // Imagen decorativa
-        JLabel lblImg = new JLabel("");
-        try {
-            lblImg.setIcon(new ImageIcon(
-                RegistrarVivienda.class.getResource(
-                    "/imagenes/edificio-del-hospital (2).png")));
-        } catch (Exception ex) {}
-        lblImg.setBounds(320, 100, 64, 73);
-        panel.add(lblImg);
+        JLabel lblTelefono = new JLabel("Telefono:");
+        lblTelefono.setBounds(10, 110, 60, 14);
+        panel.add(lblTelefono);
 
-        // ── Botones ───────────────────────────────────────────────
-        JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPane.setBackground(SystemColor.activeCaption);
+        txtTelefono = new JTextField();
+        txtTelefono.setBounds(80, 107, 150, 20);
+        panel.add(txtTelefono);
+
+        JPanel buttonPane = new JPanel();
+        buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
         JButton btnRegistrar = new JButton(esModificacion ? "Actualizar" : "Registrar");
         btnRegistrar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String telefono  = txtTelefono.getText().trim();
                 String direccion = txtDireccion.getText().trim();
+                String telefono  = txtTelefono.getText().trim();
 
                 if (direccion.isEmpty()) {
-                    JOptionPane.showMessageDialog(null,
-                        "La direccion no puede estar vacia",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Debe ingresar la dirección", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 if (!esModificacion) {
-                    // ✅ Usar el código VIV-N del campo (ya es correcto)
-                    casaReg = new Vivienda(
-                        txtCodeVivienda.getText(), direccion, telefono, null);
+                    casaReg = new Vivienda(txtCodeVivienda.getText(), direccion, telefono, null);
                     Clinica.getInstance().agregarVivienda(casaReg);
                     clean();
-                    JOptionPane.showMessageDialog(null,
-                        "Vivienda registrada correctamente",
-                        "Exito", JOptionPane.INFORMATION_MESSAGE);
-                } 
+                    JOptionPane.showMessageDialog(null, "Vivienda registrada correctamente", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    miVivienda.setDireccion(direccion);
+                    Clinica.getInstance().modificarVivienda(miVivienda.getIdVivienda(), miVivienda);
+                    dispose();
+                    JOptionPane.showMessageDialog(null, "Vivienda actualizada correctamente", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
         getRootPane().setDefaultButton(btnRegistrar);
@@ -140,8 +119,8 @@ public class RegistrarVivienda extends JDialog {
     }
 
     public void clean() {
-        // ✅ Incrementar DESPUÉS de registrar y actualizar el campo con VIV-
-        Clinica.generadorCodigoVivienda++;
+        // ARREGLADO: Ya no sumamos Clinica.generadorCodigoVivienda++ aquí porque lo suma la base de datos, 
+        // evitando que salte números en la vista.
         txtCodeVivienda.setText("VIV-" + Clinica.generadorCodigoVivienda);
         txtDireccion.setText("");
         txtTelefono.setText("");
@@ -151,7 +130,6 @@ public class RegistrarVivienda extends JDialog {
     public void loadVivienda() {
         txtCodeVivienda.setText(miVivienda.getIdVivienda());
         txtDireccion.setText(miVivienda.getDireccion());
-        if (miVivienda.getTelefono() != null)
-            txtTelefono.setText(miVivienda.getTelefono());
+        if (miVivienda.getTelefono() != null) txtTelefono.setText(miVivienda.getTelefono());
     }
 }

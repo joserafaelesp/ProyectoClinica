@@ -134,32 +134,22 @@ public class Login extends JFrame {
                         main.mCitas.setVisible(false);
 
                     } else if (usuarioEncontrado.esSecretaria()) {
-                        // ── SECRETARIA ───────────────────────────────
-                        // Solo puede:
-                        //   - Registrar pacientes
-                        //   - Ver/modificar/borrar pacientes
-                        //   - Ver médicos (solo lectura)
-                        // NO puede: consultas, citas, vacunas,
-                        //           enfermedades, viviendas, usuarios
-
                         main.mConsultas.setVisible(false);
-                        main.mCitas.setVisible(false);
+                        main.mCitas.setVisible(true); // Habilitado para secretaria
                         main.mUSER.setVisible(false);
+                        
+                        // Ahora estas líneas funcionarán correctamente:
+                        main.mntmHistorialCitas.setVisible(true); 
+                        main.mntmHistorialConsultas.setVisible(false);
 
-                        // En REGISTROS: solo "Crear Persona"
-                        // pero RegistrarGeneral solo mostrará opción Paciente
                         main.crearVacuna.setVisible(false);
                         main.crearEnfermedad.setVisible(false);
                         main.crearVivienda.setVisible(false);
-
-                        // En INVENTARIO: solo lista pacientes y lista médicos
                         main.listadoVacuna.setVisible(false);
                         main.listadoEnfermedad.setVisible(false);
                         main.listaVivienda.setVisible(false);
-
-                        // Pasar modo secretaria al listado de médicos
-                        // para que no tenga botones de modificar/borrar
                         main.setModoSecretaria(true);
+                    
 
                     } else if (usuarioEncontrado.esMedico()) {
                         // ── MÉDICO ───────────────────────────────────
