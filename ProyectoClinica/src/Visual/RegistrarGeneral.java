@@ -32,6 +32,7 @@ public class RegistrarGeneral extends JDialog {
     private Vivienda          nuevaViv = null;
     private JComboBox<String> comboBoxGender;
     private boolean           esModificacion = false;
+    private boolean           soloCrearPaciente = false; // true cuando viene de REGISTROS directo
 
     private static final String[] TIPOS_SANGRE =
         {"(seleccionar)", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
@@ -124,6 +125,8 @@ public class RegistrarGeneral extends JDialog {
             panel_Paciente.setVisible(false);
         });
         panel_DG.add(rdbtnMedico);
+        // Por defecto ocultar opción Médico — solo visible si viene de CrearUser
+        rdbtnMedico.setVisible(false);
         rdbtnPaciente = new JRadioButton("Paciente");
         rdbtnPaciente.setBackground(SystemColor.info);
         rdbtnPaciente.setBounds(402, 124, 109, 23);
@@ -413,7 +416,12 @@ public class RegistrarGeneral extends JDialog {
         }
     }
 
-        public void preseleccionarMedico(String idUsuario) {
+        /**
+     * Llamado desde CrearUser cuando el rol es Medico.
+     * Muestra el radio Medico (oculto por defecto) y lo preselecciona.
+     */
+    public void preseleccionarMedico(String idUsuario) {
+        rdbtnMedico.setVisible(true);   // mostrar radio oculto
         rdbtnMedico.setSelected(true);
         rdbtnPaciente.setSelected(false);
         panel_Medico.setVisible(true);

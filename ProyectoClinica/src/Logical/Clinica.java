@@ -37,11 +37,18 @@ public class Clinica {
     }
 
     private void actualizarGeneradores() {
-        generadorCodigoidMedico   = medicoDAO.obtenerMaxNumero("MEDICO",      "Id_Medico",      "MED-")      + 1;
+        // Sincronizar con usuarios MED- para evitar colisión de IDs
+        int maxMedico  = medicoDAO.obtenerMaxNumero("MEDICO",  "Id_Medico",  "MED-");
+        int maxUsuMed  = usuarioDAO.obtenerMaxNumero("USUARIO","Id_Usuario", "MED-");
+        generadorCodigoidMedico = Math.max(maxMedico, maxUsuMed) + 1;
         generadorCodigoPaciente   = pacienteDAO.obtenerMaxNumero("PACIENTE",  "Id_Paciente",    "PAC-")      + 1;
         generadorCodigoCita       = citaDAO.obtenerMaxNumero("CITA",          "Id_Cita",        "CITA-")     + 1;
         generadorCodigoConsulta   = consultaDAO.obtenerMaxNumero("CONSULTA",  "Id_Consulta",    "CON-")      + 1;
-        generadorCodigoUser       = usuarioDAO.obtenerMaxNumero("USUARIO",    "Id_Usuario",     "USR-")      + 1;
+        // Generadores por prefijo de rol — el mayor de los tres determina el siguiente libre
+        int maxAdm = usuarioDAO.obtenerMaxNumero("USUARIO", "Id_Usuario", "ADM-");
+        int maxMed = usuarioDAO.obtenerMaxNumero("USUARIO", "Id_Usuario", "MED-");
+        int maxSec = usuarioDAO.obtenerMaxNumero("USUARIO", "Id_Usuario", "SEC-");
+        generadorCodigoUser = Math.max(Math.max(maxAdm, maxMed), maxSec) + 1;
         generadorCodigoVacuna     = vacunaDAO.obtenerMaxNumero("VACUNA",      "Id_Vacuna",      "VAC-")      + 1;
         generadorCodigoVivienda   = viviendaDAO.obtenerMaxNumero("VIVIENDA",  "Id_Vivienda",    "VIV-")      + 1;
         generadorCodigoEnfermedad = enfermedadDAO.obtenerMaxNumero("ENFERMEDAD","Id_Enfermedad","ENF-")      + 1;

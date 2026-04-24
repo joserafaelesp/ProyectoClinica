@@ -174,13 +174,15 @@ public class CrearUser extends JDialog {
                 } else if (rol.equals("Medico")) {
                     // ── MÉDICO: paso 1 guardar en USUARIO ────────
                     Clinica.getInstance().agregarUsuario(userObj);
+                    // Sincronizar ID de medico con el usuario recien creado
+                    Clinica.generadorCodigoidMedico =
+                        Clinica.getInstance().obtenerMaxUsuarioPorPrefijo("MED-");
 
                     JOptionPane.showMessageDialog(null,
-                        "Credenciales creadas para el médico.\n"
-                        + "Complete ahora los datos personales.",
+                        "Credenciales creadas (ID: " + id + ").\n"
+                        + "Complete ahora los datos personales del medico.",
                         "Paso 2 de 2", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Abrir RegistrarGeneral con médico preseleccionado
                     RegistrarGeneral regMedico = new RegistrarGeneral(null, 0);
                     regMedico.setModal(true);
                     regMedico.preseleccionarMedico(id);
