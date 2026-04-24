@@ -22,10 +22,10 @@ import Logical.Usuario;
 
 public class Login extends JFrame {
 
-    private JPanel contentPane;
+    private JPanel         contentPane;
     private JPasswordField JpassContra;
-    private JTextField txtUser;
-    private Dimension dim;
+    private JTextField     txtUser;
+    private Dimension      dim;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -53,7 +53,7 @@ public class Login extends JFrame {
         JpassContra.setBounds(227, 131, 214, 20);
         contentPane.add(JpassContra);
 
-        JLabel lblContra = new JLabel("Contraseña:");
+        JLabel lblContra = new JLabel("Contrasena:");
         lblContra.setBounds(227, 118, 85, 14);
         contentPane.add(lblContra);
 
@@ -75,7 +75,8 @@ public class Login extends JFrame {
         JLabel lblImagen = new JLabel("");
         try {
             lblImagen.setIcon(new ImageIcon(
-                Login.class.getResource("/imagenes/edificio-del-hospital (3).png")));
+                Login.class.getResource(
+                    "/imagenes/edificio-del-hospital (3).png")));
         } catch (Exception ex) {
             System.out.println("Imagen no encontrada");
         }
@@ -106,13 +107,14 @@ public class Login extends JFrame {
 
                 if (nombreUsuario.isEmpty() || claveFinal.isEmpty()) {
                     JOptionPane.showMessageDialog(null,
-                        "Por favor ingresa usuario y contraseña",
-                        "Campos vacíos", JOptionPane.WARNING_MESSAGE);
+                        "Por favor ingresa usuario y contrasena",
+                        "Campos vacios", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
 
                 Usuario usuarioEncontrado =
-                    Clinica.getInstance().autenticarUsuario(nombreUsuario, claveFinal);
+                    Clinica.getInstance().autenticarUsuario(
+                        nombreUsuario, claveFinal);
 
                 if (usuarioEncontrado != null) {
                     dispose();
@@ -128,41 +130,73 @@ public class Login extends JFrame {
 
                     if (usuarioEncontrado.esAdministrador()) {
                         // ── ADMINISTRADOR ────────────────────────────
-                        // Solo gestiona usuarios y configuración general
-                        // No hace consultas ni citas (eso es del médico)
+                        // Gestiona usuarios — sin consultas ni citas
                         main.mConsultas.setVisible(false);
                         main.mCitas.setVisible(false);
+                        main.listadoConsultas.setVisible(false);
 
                     } else if (usuarioEncontrado.esSecretaria()) {
+                        // ── SECRETARIA ───────────────────────────────
+                        // Puede: registrar pacientes, ver pacientes,
+                        //        ver medicos (solo lectura), listar citas
+                        // NO puede: consultas, usuarios, vacunas,
+                        //           enfermedades, viviendas
                         main.mConsultas.setVisible(false);
-                        main.mCitas.setVisible(true); // Habilitado para secretaria
                         main.mUSER.setVisible(false);
-                        
-                        // Ahora estas líneas funcionarán correctamente:
-                        main.mntmHistorialCitas.setVisible(true); 
-                        main.mntmHistorialConsultas.setVisible(false);
 
+                        // Citas: la secretaria agenda y gestiona citas
+                        main.mCitas.setVisible(true);
+                        main.listadoCitas.setVisible(true);
+
+                        // Registros: pacientes y viviendas
+                        // (necesita viviendas para asignarlas a pacientes)
                         main.crearVacuna.setVisible(false);
                         main.crearEnfermedad.setVisible(false);
-                        main.crearVivienda.setVisible(false);
+                        main.crearVivienda.setVisible(true);   // ← puede crear viviendas
+
+                        // Inventario: pacientes, medicos y viviendas
                         main.listadoVacuna.setVisible(false);
                         main.listadoEnfermedad.setVisible(false);
-                        main.listaVivienda.setVisible(false);
+                        main.listaVivienda.setVisible(true);   // ← puede ver/editar viviendas
+
+                        // Modo secretaria: medico solo lectura,
+                        // registrar persona solo pacientes
+                        main.historialPaciente.setVisible(false);
                         main.setModoSecretaria(true);
-                    
 
                     } else if (usuarioEncontrado.esMedico()) {
-                        // ── MÉDICO ───────────────────────────────────
-                        // Puede: consultas, ver pacientes, ver enfermedades/vacunas
-                        // NO puede: citas, viviendas, usuarios
+                        // ── MEDICO ───────────────────────────────────
+                        // Puede: ver/completar sus citas, ver sus consultas,
+                        //        registrar enfermedades y vacunas, ver pacientes
+                        // NO puede: crear citas, crear personas, viviendas,
+                        //           ver medicos, usuarios
+
+                        // CITAS: solo ver las suyas y completarlas
                         main.mCitas.setVisible(false);
+                        main.listadoCitas.setVisible(true);
+
+                        // CONSULTAS: solo las suyas (Hacer Consulta bloqueado — debe venir de cita)
+                        main.HacerConsultas.setVisible(false);
+                        main.listadoConsultas.setVisible(true);
+
+                        // REGISTROS: solo enfermedades y vacunas
+                        main.mntmNewMenuItem_9.setVisible(false); // Crear Persona
+                        main.crearVivienda.setVisible(false);
+                        main.crearEnfermedad.setVisible(true);
+                        main.crearVacuna.setVisible(true);
+
+                        // INVENTARIO: solo pacientes — sin medicos ni viviendas
+                        main.listaMedico.setVisible(false);
                         main.listaVivienda.setVisible(false);
-                        main.crearEnfermedad.setVisible(false);
-                        main.crearVacuna.setVisible(false);
+                        main.listadoVacuna.setVisible(true);
+                        main.listadoEnfermedad.setVisible(true);
+
+                        // Sin usuarios
                         main.mUSER.setVisible(false);
                     }
 
-                    main.lblUser.setText("  " + usuarioEncontrado.getNombreUser()
+                    main.lblUser.setText("  "
+                        + usuarioEncontrado.getNombreUser()
                         + " [" + usuarioEncontrado.getRol() + "]  ");
 
                     dim = getToolkit().getScreenSize();
@@ -173,7 +207,7 @@ public class Login extends JFrame {
 
                 } else {
                     JOptionPane.showMessageDialog(null,
-                        "Usuario o contraseña incorrectos",
+                        "Usuario o contrasena incorrectos",
                         "Error de acceso", JOptionPane.ERROR_MESSAGE);
                     txtUser.setText("");
                     JpassContra.setText("");

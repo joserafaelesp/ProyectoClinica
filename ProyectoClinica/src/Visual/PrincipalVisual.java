@@ -29,13 +29,14 @@ public class PrincipalVisual extends JFrame {
     public JMenuItem listadoVacuna;
     public JMenuItem listadoEnfermedad;
     public JMenuItem listaVivienda;
+    public JMenuItem listadoCitas;
+    public JMenuItem listadoConsultas;
+    public JMenuItem historialPaciente;
     private Dimension dim;
     public JMenuItem crearEnfermedad;
     public JMenuItem crearVivienda;
     private Logical.Usuario usuarioActual;
     private boolean modoSecretaria = false;
-    public JMenuItem mntmHistorialCitas;
-    public JMenuItem mntmHistorialConsultas;
 
     public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
@@ -92,10 +93,18 @@ public class PrincipalVisual extends JFrame {
         HacerConsultas = new JMenuItem("Hacer Consulta");
         HacerConsultas.addActionListener(e -> {
             HacerConsulta hcons = new HacerConsulta(usuarioActual);
-            hcons.setModal(true); hcons.setVisible(true);
+            hcons.setVisible(true);
         });
         stylizeMenuItem(HacerConsultas);
         mConsultas.add(HacerConsultas);
+
+        listadoConsultas = new JMenuItem("Ver Consultas");
+        listadoConsultas.addActionListener(e -> {
+            ListarConsulta lc = new ListarConsulta(usuarioActual);
+            lc.setModal(true); lc.setVisible(true);
+        });
+        stylizeMenuItem(listadoConsultas);
+        mConsultas.add(listadoConsultas);
 
         // ── REGISTROS ────────────────────────────────────────────
         mRegistro = new JMenu("REGISTROS");
@@ -141,11 +150,15 @@ public class PrincipalVisual extends JFrame {
 
         listaPaciente = new JMenuItem("Listado Paciente");
         listaPaciente.addActionListener(e -> {
-            ListarPaciente lp = new ListarPaciente();
+            // Medico: solo lectura — no puede modificar ni borrar
+            boolean soloLeer = (usuarioActual != null && usuarioActual.esMedico());
+            ListarPaciente lp = new ListarPaciente(soloLeer);
             lp.setModal(true); lp.setVisible(true);
         });
         stylizeMenuItem(listaPaciente);
         mInvertario.add(listaPaciente);
+
+
 
         // Listado Médico — pasa modoSecretaria para solo lectura
         listaMedico = new JMenuItem("Listado Medico");
@@ -181,25 +194,24 @@ public class PrincipalVisual extends JFrame {
         mInvertario.add(listaVivienda);
 
         // ── UTILIDADES ───────────────────────────────────────────
-     // Creamos el menú una sola vez
         mUtilidades = new JMenu("UTILIDADES");
         menuBar.add(mUtilidades);
 
-        // Primer elemento (Working)
-        JMenuItem mntmWorking = new JMenuItem("WORKING");
-        stylizeMenuItem(mntmWorking);
-        mUtilidades.add(mntmWorking);
+        listadoCitas = new JMenuItem("Listado de Citas");
+        listadoCitas.addActionListener(e -> {
+            ListarCita lc = new ListarCita(usuarioActual);
+            lc.setModal(true); lc.setVisible(true);
+        });
+        stylizeMenuItem(listadoCitas);
+        mUtilidades.add(listadoCitas);
 
-        // Segundo elemento (Historial Citas)
-        mntmHistorialCitas = new JMenuItem("Historial de Citas");
-        stylizeMenuItem(mntmHistorialCitas); // Aplicamos tu estilo para que se vea bien
-        // mntmHistorialCitas.setIcon(new ImageIcon(PrincipalVisual.class.getResource("/imagenes/tu_imagen.png")));
-        mUtilidades.add(mntmHistorialCitas);
-
-        // Tercer elemento (Historial Consultas)
-        mntmHistorialConsultas = new JMenuItem("Historial de Consultas");
-        stylizeMenuItem(mntmHistorialConsultas);
-        mUtilidades.add(mntmHistorialConsultas);
+        historialPaciente = new JMenuItem("Historial Paciente");
+        historialPaciente.addActionListener(e -> {
+            HistorialPacienteBuscar hpb = new HistorialPacienteBuscar();
+            hpb.setModal(true); hpb.setVisible(true);
+        });
+        stylizeMenuItem(historialPaciente);
+        mUtilidades.add(historialPaciente);
 
         // ── USUARIO ──────────────────────────────────────────────
         mUSER = new JMenu("USUARIO");

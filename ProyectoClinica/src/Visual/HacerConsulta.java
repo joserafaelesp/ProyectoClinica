@@ -19,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
@@ -26,12 +27,14 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
+import Logical.Cita;
 import Logical.Clinica;
 import Logical.Consultas;
 import Logical.Enfermedad;
 import Logical.Medico;
 import Logical.Paciente;
 import Logical.Usuario;
+import Logical.Vacuna;
 
 public class HacerConsulta extends JDialog {
 
@@ -46,27 +49,41 @@ public class HacerConsulta extends JDialog {
     private JComboBox<String> comboMes;
     private JComboBox<String> comboAnio;
 
-    private DefaultTableModel modeloDisp;
-    private DefaultTableModel modeloSel;
-    private JTable            tablaDisp;
-    private JTable            tablaSel;
-    private JButton           btnAgregar;
-    private JButton           btnQuitar;
+    // Tablas enfermedades
+    private DefaultTableModel modeloEnfDisp;
+    private DefaultTableModel modeloEnfSel;
+    private JTable            tablaEnfDisp;
+    private JTable            tablaEnfSel;
+    private JButton           btnAgregarEnf;
+    private JButton           btnQuitarEnf;
+
+    // Tablas vacunas
+    private DefaultTableModel modeloVacDisp;
+    private DefaultTableModel modeloVacSel;
+    private JTable            tablaVacDisp;
+    private JTable            tablaVacSel;
+    private JButton           btnAgregarVac;
+    private JButton           btnQuitarVac;
 
     private ArrayList<Enfermedad> enfermedadesSelected = new ArrayList<Enfermedad>();
-    private Usuario           usuarioActual;
-    private Paciente          pacienteSeleccionado = null;
+    private ArrayList<Vacuna>     vacunasSelected       = new ArrayList<Vacuna>();
+    private Usuario               usuarioActual;
+    private Paciente              pacienteSeleccionado  = null;
+    private boolean               vieneDeUnaCita        = false;
 
     private static final String[] MESES = {
         "(mes)", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     };
 
-    public HacerConsulta(Usuario user) {
+    public HacerConsulta(Usuario user) { this(user, null); }
+
+    public HacerConsulta(Usuario user, Cita cita) {
         this.usuarioActual = user;
+        vieneDeUnaCita     = (cita != null);
 
         setTitle("Registrar Consulta Medica");
-        setBounds(100, 100, 700, 560);
+        setBounds(100, 100, 750, 620);
         setResizable(false);
         setModal(true);
         getContentPane().setLayout(new BorderLayout());
@@ -75,38 +92,36 @@ public class HacerConsulta extends JDialog {
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(null);
 
-        // Panel datos generales
+        // ══════════════════════════════════════════════════════════
+        // PANEL DATOS GENERALES
+        // ══════════════════════════════════════════════════════════
         JPanel pnlDatos = new JPanel();
         pnlDatos.setBackground(SystemColor.info);
         pnlDatos.setBorder(new TitledBorder("Datos de la consulta"));
-        pnlDatos.setBounds(8, 8, 668, 140);
+        pnlDatos.setBounds(8, 8, 720, 145);
         pnlDatos.setLayout(null);
         contentPanel.add(pnlDatos);
 
-        JLabel lblCod = new JLabel("Codigo:");
-        lblCod.setBounds(10, 26, 70, 14);
-        pnlDatos.add(lblCod);
-
+        // Codigo
+        addLabel(pnlDatos, "Codigo:", 10, 28);
         txtCodigo = new JTextField("CON-" + Clinica.generadorCodigoConsulta);
         txtCodigo.setEnabled(false);
         txtCodigo.setBackground(new Color(220, 220, 220));
         txtCodigo.setForeground(Color.DARK_GRAY);
-        txtCodigo.setBounds(80, 23, 100, 22);
+        txtCodigo.setBounds(80, 25, 110, 22);
         pnlDatos.add(txtCodigo);
 
-        JLabel lblFecha = new JLabel("Fecha:");
-        lblFecha.setBounds(195, 26, 45, 14);
-        pnlDatos.add(lblFecha);
-
+        // Fecha
+        addLabel(pnlDatos, "Fecha:", 205, 28);
         String[] dias = new String[32];
         dias[0] = "(dia)";
         for (int i = 1; i <= 31; i++) dias[i] = String.valueOf(i);
         comboDia = new JComboBox<String>(dias);
-        comboDia.setBounds(243, 23, 60, 22);
+        comboDia.setBounds(250, 25, 60, 22);
         pnlDatos.add(comboDia);
 
         comboMes = new JComboBox<String>(MESES);
-        comboMes.setBounds(308, 23, 110, 22);
+        comboMes.setBounds(315, 25, 110, 22);
         pnlDatos.add(comboMes);
 
         int anioActual = LocalDate.now().getYear();
@@ -115,25 +130,23 @@ public class HacerConsulta extends JDialog {
         for (int i = 1; i < anios.length; i++)
             anios[i] = String.valueOf(anioActual - i + 1);
         comboAnio = new JComboBox<String>(anios);
-        comboAnio.setBounds(423, 23, 75, 22);
+        comboAnio.setBounds(430, 25, 75, 22);
         pnlDatos.add(comboAnio);
 
+        // Fecha de hoy por defecto
         LocalDate hoy = LocalDate.now();
         comboDia.setSelectedIndex(hoy.getDayOfMonth());
         comboMes.setSelectedIndex(hoy.getMonthValue());
         for (int i = 0; i < comboAnio.getItemCount(); i++) {
             if (String.valueOf(hoy.getYear()).equals(comboAnio.getItemAt(i))) {
-                comboAnio.setSelectedIndex(i);
-                break;
+                comboAnio.setSelectedIndex(i); break;
             }
         }
 
-        JLabel lblMed = new JLabel("Cedula medico:");
-        lblMed.setBounds(10, 60, 100, 14);
-        pnlDatos.add(lblMed);
-
+        // Cedula medico
+        addLabel(pnlDatos, "Cedula medico:", 10, 62);
         txtCedulaMed = new JTextField();
-        txtCedulaMed.setBounds(115, 57, 150, 22);
+        txtCedulaMed.setBounds(110, 59, 140, 22);
         pnlDatos.add(txtCedulaMed);
 
         if (usuarioActual != null && usuarioActual.esMedico()) {
@@ -146,94 +159,154 @@ public class HacerConsulta extends JDialog {
             }
         }
 
-        JButton btnVerificarMed = new JButton("Verificar");
-        btnVerificarMed.setBounds(273, 57, 80, 22);
-        btnVerificarMed.addActionListener(e -> verificarMedico());
-        pnlDatos.add(btnVerificarMed);
+        JButton btnVerMed = new JButton("Verificar");
+        btnVerMed.setBounds(258, 59, 80, 22);
+        btnVerMed.addActionListener(e -> verificarMedico());
+        pnlDatos.add(btnVerMed);
 
-        JLabel lblPac = new JLabel("Paciente:");
-        lblPac.setBounds(10, 95, 100, 14);
-        pnlDatos.add(lblPac);
-
+        // Paciente
+        addLabel(pnlDatos, "Paciente:", 10, 98);
         txtCedulaPac = new JTextField();
         txtCedulaPac.setEditable(false);
         txtCedulaPac.setBackground(new Color(220, 220, 220));
         txtCedulaPac.setForeground(Color.DARK_GRAY);
-        txtCedulaPac.setBounds(115, 92, 150, 22);
+        txtCedulaPac.setBounds(80, 95, 180, 22);
         pnlDatos.add(txtCedulaPac);
 
         JButton btnSelPac = new JButton("Seleccionar...");
-        btnSelPac.setBounds(273, 92, 110, 22);
+        btnSelPac.setBounds(268, 95, 110, 22);
         btnSelPac.addActionListener(e -> abrirSelectorPaciente());
         pnlDatos.add(btnSelPac);
 
-        JLabel lblDiag = new JLabel("Diagnostico:");
-        lblDiag.setBounds(395, 95, 85, 14);
-        pnlDatos.add(lblDiag);
-
+        // Diagnostico
+        addLabel(pnlDatos, "Diagnostico:", 395, 62);
         txtDiagnostico = new JTextField();
-        txtDiagnostico.setBounds(480, 92, 178, 22);
+        txtDiagnostico.setBounds(480, 59, 230, 22);
         pnlDatos.add(txtDiagnostico);
 
-        // Panel enfermedades
-        JPanel pnlEnfs = new JPanel();
-        pnlEnfs.setBackground(SystemColor.info);
-        pnlEnfs.setBorder(new TitledBorder("Enfermedades diagnosticadas"));
-        pnlEnfs.setBounds(8, 155, 668, 290);
-        pnlEnfs.setLayout(null);
-        contentPanel.add(pnlEnfs);
+        // ══════════════════════════════════════════════════════════
+        // PESTAÑAS: ENFERMEDADES | VACUNAS
+        // ══════════════════════════════════════════════════════════
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tabs.setBounds(8, 160, 720, 340);
+        contentPanel.add(tabs);
 
-        JLabel lblDisp = new JLabel("Disponibles:");
-        lblDisp.setBounds(10, 20, 90, 14);
-        pnlEnfs.add(lblDisp);
+        // ── Pestaña Enfermedades ─────────────────────────────────
+        JPanel pnlEnf = new JPanel(null);
+        pnlEnf.setBackground(SystemColor.info);
+        tabs.addTab("  Enfermedades diagnosticadas  ", pnlEnf);
 
-        modeloDisp = new DefaultTableModel(0, 3);
-        modeloDisp.setColumnIdentifiers(new String[]{"ID", "Nombre", "Gravedad"});
-        tablaDisp = new JTable(modeloDisp) {
+        addLabel(pnlEnf, "Disponibles:", 10, 15);
+        modeloEnfDisp = new DefaultTableModel(0, 3);
+        modeloEnfDisp.setColumnIdentifiers(new String[]{"ID", "Nombre", "Gravedad"});
+        tablaEnfDisp = new JTable(modeloEnfDisp) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaDisp.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tablaDisp.getTableHeader().setReorderingAllowed(false);
-        tablaDisp.getColumnModel().getColumn(0).setPreferredWidth(60);
-        tablaDisp.getColumnModel().getColumn(1).setPreferredWidth(150);
-        tablaDisp.getColumnModel().getColumn(2).setPreferredWidth(80);
-        JScrollPane spDisp = new JScrollPane(tablaDisp);
-        spDisp.setBounds(10, 38, 280, 220);
-        pnlEnfs.add(spDisp);
+        tablaEnfDisp.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaEnfDisp.setRowHeight(24);
+        tablaEnfDisp.getTableHeader().setReorderingAllowed(false);
+        tablaEnfDisp.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaEnfDisp.getColumnModel().getColumn(1).setPreferredWidth(150);
+        tablaEnfDisp.getColumnModel().getColumn(2).setPreferredWidth(90);
+        tablaEnfDisp.getTableHeader().setBackground(SystemColor.activeCaption);
+        JScrollPane spEnfDisp = new JScrollPane(tablaEnfDisp);
+        spEnfDisp.setBounds(10, 35, 300, 250);
+        pnlEnf.add(spEnfDisp);
 
-        btnAgregar = new JButton("Agregar >");
-        btnAgregar.setEnabled(false);
-        btnAgregar.setBounds(300, 110, 90, 28);
-        btnAgregar.addActionListener(e -> agregarEnfermedad());
-        pnlEnfs.add(btnAgregar);
+        btnAgregarEnf = new JButton("Agregar >");
+        btnAgregarEnf.setEnabled(false);
+        btnAgregarEnf.setBackground(new Color(70, 130, 180));
+        btnAgregarEnf.setForeground(Color.WHITE);
+        btnAgregarEnf.setFocusPainted(false);
+        btnAgregarEnf.setBounds(320, 120, 100, 30);
+        btnAgregarEnf.addActionListener(e -> agregarEnfermedad());
+        pnlEnf.add(btnAgregarEnf);
 
-        btnQuitar = new JButton("< Quitar");
-        btnQuitar.setEnabled(false);
-        btnQuitar.setBounds(300, 148, 90, 28);
-        btnQuitar.addActionListener(e -> quitarEnfermedad());
-        pnlEnfs.add(btnQuitar);
+        btnQuitarEnf = new JButton("< Quitar");
+        btnQuitarEnf.setEnabled(false);
+        btnQuitarEnf.setBounds(320, 160, 100, 30);
+        btnQuitarEnf.addActionListener(e -> quitarEnfermedad());
+        pnlEnf.add(btnQuitarEnf);
 
-        JLabel lblSel = new JLabel("En esta consulta:");
-        lblSel.setBounds(398, 20, 120, 14);
-        pnlEnfs.add(lblSel);
-
-        modeloSel = new DefaultTableModel(0, 2);
-        modeloSel.setColumnIdentifiers(new String[]{"ID", "Nombre"});
-        tablaSel = new JTable(modeloSel) {
+        addLabel(pnlEnf, "Diagnosticadas:", 430, 15);
+        modeloEnfSel = new DefaultTableModel(0, 2);
+        modeloEnfSel.setColumnIdentifiers(new String[]{"ID", "Nombre"});
+        tablaEnfSel = new JTable(modeloEnfSel) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaSel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        tablaSel.getTableHeader().setReorderingAllowed(false);
-        JScrollPane spSel = new JScrollPane(tablaSel);
-        spSel.setBounds(398, 38, 260, 220);
-        pnlEnfs.add(spSel);
+        tablaEnfSel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaEnfSel.setRowHeight(24);
+        tablaEnfSel.getTableHeader().setReorderingAllowed(false);
+        tablaEnfSel.getTableHeader().setBackground(SystemColor.activeCaption);
+        JScrollPane spEnfSel = new JScrollPane(tablaEnfSel);
+        spEnfSel.setBounds(430, 35, 270, 250);
+        pnlEnf.add(spEnfSel);
 
-        tablaDisp.getSelectionModel().addListSelectionListener(
-            e -> btnAgregar.setEnabled(tablaDisp.getSelectedRow() >= 0));
-        tablaSel.getSelectionModel().addListSelectionListener(
-            e -> btnQuitar.setEnabled(tablaSel.getSelectedRow() >= 0));
+        tablaEnfDisp.getSelectionModel().addListSelectionListener(
+            e -> btnAgregarEnf.setEnabled(tablaEnfDisp.getSelectedRow() >= 0));
+        tablaEnfSel.getSelectionModel().addListSelectionListener(
+            e -> btnQuitarEnf.setEnabled(tablaEnfSel.getSelectedRow() >= 0));
 
-        // Botones finales
+        // ── Pestaña Vacunas ──────────────────────────────────────
+        JPanel pnlVac = new JPanel(null);
+        pnlVac.setBackground(SystemColor.info);
+        tabs.addTab("  Vacunas aplicadas  ", pnlVac);
+
+        addLabel(pnlVac, "Disponibles:", 10, 15);
+        modeloVacDisp = new DefaultTableModel(0, 3);
+        modeloVacDisp.setColumnIdentifiers(new String[]{"ID", "Nombre", "Descripcion"});
+        tablaVacDisp = new JTable(modeloVacDisp) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tablaVacDisp.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaVacDisp.setRowHeight(24);
+        tablaVacDisp.getTableHeader().setReorderingAllowed(false);
+        tablaVacDisp.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaVacDisp.getColumnModel().getColumn(1).setPreferredWidth(150);
+        tablaVacDisp.getColumnModel().getColumn(2).setPreferredWidth(90);
+        tablaVacDisp.getTableHeader().setBackground(SystemColor.activeCaption);
+        JScrollPane spVacDisp = new JScrollPane(tablaVacDisp);
+        spVacDisp.setBounds(10, 35, 300, 250);
+        pnlVac.add(spVacDisp);
+
+        btnAgregarVac = new JButton("Agregar >");
+        btnAgregarVac.setEnabled(false);
+        btnAgregarVac.setBackground(new Color(60, 160, 80));
+        btnAgregarVac.setForeground(Color.WHITE);
+        btnAgregarVac.setFocusPainted(false);
+        btnAgregarVac.setBounds(320, 120, 100, 30);
+        btnAgregarVac.addActionListener(e -> agregarVacuna());
+        pnlVac.add(btnAgregarVac);
+
+        btnQuitarVac = new JButton("< Quitar");
+        btnQuitarVac.setEnabled(false);
+        btnQuitarVac.setBounds(320, 160, 100, 30);
+        btnQuitarVac.addActionListener(e -> quitarVacuna());
+        pnlVac.add(btnQuitarVac);
+
+        addLabel(pnlVac, "Aplicadas:", 430, 15);
+        modeloVacSel = new DefaultTableModel(0, 2);
+        modeloVacSel.setColumnIdentifiers(new String[]{"ID", "Nombre"});
+        tablaVacSel = new JTable(modeloVacSel) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tablaVacSel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaVacSel.setRowHeight(24);
+        tablaVacSel.getTableHeader().setReorderingAllowed(false);
+        tablaVacSel.getTableHeader().setBackground(SystemColor.activeCaption);
+        JScrollPane spVacSel = new JScrollPane(tablaVacSel);
+        spVacSel.setBounds(430, 35, 270, 250);
+        pnlVac.add(spVacSel);
+
+        tablaVacDisp.getSelectionModel().addListSelectionListener(
+            e -> btnAgregarVac.setEnabled(tablaVacDisp.getSelectedRow() >= 0));
+        tablaVacSel.getSelectionModel().addListSelectionListener(
+            e -> btnQuitarVac.setEnabled(tablaVacSel.getSelectedRow() >= 0));
+
+        // ══════════════════════════════════════════════════════════
+        // BOTONES
+        // ══════════════════════════════════════════════════════════
         JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPane.setBackground(SystemColor.activeCaption);
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
@@ -249,37 +322,88 @@ public class HacerConsulta extends JDialog {
         btnCancelar.addActionListener(e -> dispose());
         buttonPane.add(btnCancelar);
 
-        cargarTablaEnfermedades();
+        // Precargar desde cita si viene de una
+        if (cita != null) {
+            if (cita.getDoc() != null) {
+                txtCedulaMed.setText(cita.getDoc().getCedula());
+                txtCedulaMed.setEnabled(false);
+                txtCedulaMed.setBackground(new Color(220, 220, 220));
+            }
+            if (cita.getPaciente() != null) {
+                pacienteSeleccionado = cita.getPaciente();
+                txtCedulaPac.setText(cita.getPaciente().getCedula()
+                    + "  -  " + cita.getPaciente().getNombre());
+            }
+            comboDia.setSelectedIndex(LocalDate.now().getDayOfMonth());
+            comboMes.setSelectedIndex(LocalDate.now().getMonthValue());
+        }
+
+        cargarTablas();
     }
 
-    private void cargarTablaEnfermedades() {
-        modeloDisp.setRowCount(0);
+    private void addLabel(JPanel p, String txt, int x, int y) {
+        JLabel lbl = new JLabel(txt);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setBounds(x, y, 130, 20);
+        p.add(lbl);
+    }
+
+    private void cargarTablas() {
+        // Enfermedades
+        modeloEnfDisp.setRowCount(0);
         for (Enfermedad e : Clinica.getInstance().getMisEnfermedades()) {
-            String gravedad = (e.getGravedad() != null)
+            String grav = e.getGravedad() != null
                 ? e.getGravedad().getGravedad() : "(sin clasificar)";
-            modeloDisp.addRow(new Object[]{
-                e.getIdEnfermedad(), e.getNombreEnfermedad(), gravedad});
+            modeloEnfDisp.addRow(new Object[]{
+                e.getIdEnfermedad(), e.getNombreEnfermedad(), grav});
+        }
+        // Vacunas
+        modeloVacDisp.setRowCount(0);
+        for (Vacuna v : Clinica.getInstance().getMisVacunas()) {
+            modeloVacDisp.addRow(new Object[]{
+                v.getIdVacuna(), v.getNombreVacuna(),
+                v.getDescripcion() != null ? v.getDescripcion() : ""});
         }
     }
 
     private void agregarEnfermedad() {
-        int fila = tablaDisp.getSelectedRow();
+        int fila = tablaEnfDisp.getSelectedRow();
         if (fila < 0) return;
-        String idEnf = (String) modeloDisp.getValueAt(fila, 0);
+        String idEnf = (String) modeloEnfDisp.getValueAt(fila, 0);
         Enfermedad enf = Clinica.getInstance().obtenerEnfermedadById(idEnf);
         if (enf != null && !enfermedadesSelected.contains(enf)) {
             enfermedadesSelected.add(enf);
-            modeloSel.addRow(new Object[]{
+            modeloEnfSel.addRow(new Object[]{
                 enf.getIdEnfermedad(), enf.getNombreEnfermedad()});
         }
     }
 
     private void quitarEnfermedad() {
-        int fila = tablaSel.getSelectedRow();
+        int fila = tablaEnfSel.getSelectedRow();
         if (fila < 0) return;
         enfermedadesSelected.remove(fila);
-        modeloSel.removeRow(fila);
-        btnQuitar.setEnabled(false);
+        modeloEnfSel.removeRow(fila);
+        btnQuitarEnf.setEnabled(false);
+    }
+
+    private void agregarVacuna() {
+        int fila = tablaVacDisp.getSelectedRow();
+        if (fila < 0) return;
+        String idVac = (String) modeloVacDisp.getValueAt(fila, 0);
+        Vacuna vac = Clinica.getInstance().obtenerVacunaById(idVac);
+        if (vac != null && !vacunasSelected.contains(vac)) {
+            vacunasSelected.add(vac);
+            modeloVacSel.addRow(new Object[]{
+                vac.getIdVacuna(), vac.getNombreVacuna()});
+        }
+    }
+
+    private void quitarVacuna() {
+        int fila = tablaVacSel.getSelectedRow();
+        if (fila < 0) return;
+        vacunasSelected.remove(fila);
+        modeloVacSel.removeRow(fila);
+        btnQuitarVac.setEnabled(false);
     }
 
     private void verificarMedico() {
@@ -288,22 +412,30 @@ public class HacerConsulta extends JDialog {
         Medico m = Clinica.getInstance().obtenerMedicoById(ced);
         if (m == null)
             JOptionPane.showMessageDialog(this,
-                "Medico no encontrado con esa cedula",
-                "Error", JOptionPane.ERROR_MESSAGE);
+                "Medico no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
         else
             JOptionPane.showMessageDialog(this,
-                "Medico verificado: " + m.getNombre(),
-                "OK", JOptionPane.INFORMATION_MESSAGE);
+                "Medico: " + m.getNombre() + " — " + m.getEspecialidad(),
+                "Verificado", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void registrar() {
+        if (usuarioActual != null && usuarioActual.esMedico() && !vieneDeUnaCita) {
+            JOptionPane.showMessageDialog(this,
+                "Para registrar una consulta primero debe\n"
+                + "marcar una cita como completada desde\n"
+                + "UTILIDADES → Listado de Citas.",
+                "Accion no permitida", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         String cedulaMed   = txtCedulaMed.getText().trim();
         String cedulaPac   = txtCedulaPac.getText().trim();
         String diagnostico = txtDiagnostico.getText().trim();
 
         if (cedulaMed.isEmpty() || cedulaPac.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                "Seleccione el medico y el paciente antes de registrar",
+                "Seleccione el medico y el paciente",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -325,17 +457,24 @@ public class HacerConsulta extends JDialog {
         }
 
         Date fecha = obtenerFecha();
-
         Consultas nueva = new Consultas(
             txtCodigo.getText(), fecha,
             enfermedadesSelected, medico, paciente);
         nueva.setDiagnostico(diagnostico);
 
+        // Pasar vacunas seleccionadas
+        ArrayList<String> idsVacunas = new ArrayList<String>();
+        for (Vacuna v : vacunasSelected)
+            idsVacunas.add(v.getIdVacuna());
+        nueva.setVacunasAplicadas(idsVacunas);
+
         Clinica.getInstance().agregarConsulta(nueva);
         limpiar();
 
         JOptionPane.showMessageDialog(this,
-            "Consulta registrada correctamente",
+            "Consulta registrada correctamente\n"
+            + "Enfermedades: " + enfermedadesSelected.size() + "\n"
+            + "Vacunas aplicadas: " + vacunasSelected.size(),
             "Exito", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -346,48 +485,43 @@ public class HacerConsulta extends JDialog {
             String anioStr = (String) comboAnio.getSelectedItem();
             if (dia == 0 || mes == 0 || anioStr.equals("(anio)"))
                 return new Date();
-            int anio = Integer.parseInt(anioStr);
-            return Date.from(LocalDate.of(anio, mes, dia)
+            return Date.from(LocalDate.of(Integer.parseInt(anioStr), mes, dia)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
-        } catch (Exception e) {
-            return new Date();
-        }
+        } catch (Exception e) { return new Date(); }
     }
 
     private void abrirSelectorPaciente() {
         ArrayList<Paciente> lista = Clinica.getInstance().getMisPaciente();
         if (lista.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                "No hay pacientes registrados en el sistema",
+                "No hay pacientes registrados",
                 "Sin pacientes", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        JDialog dlg = new JDialog(this, "Seleccionar Paciente", true);
+        javax.swing.JDialog dlg = new javax.swing.JDialog(
+            this, "Seleccionar Paciente", true);
         dlg.setSize(580, 380);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
-        JLabel lblTit = new JLabel("  Selecciona un paciente:", JLabel.LEFT);
-        lblTit.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lblTit.setBorder(new EmptyBorder(8, 4, 4, 4));
-        dlg.add(lblTit, BorderLayout.NORTH);
+        JLabel lbl = new JLabel("  Selecciona un paciente:");
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setBorder(new EmptyBorder(8, 4, 4, 4));
+        dlg.add(lbl, BorderLayout.NORTH);
 
         DefaultTableModel mdl = new DefaultTableModel(0, 4);
-        mdl.setColumnIdentifiers(new String[]{"Cedula", "Nombre", "Tipo Sangre", "ID Paciente"});
-        for (Paciente p : lista) {
-            String sangre = (p.getTipoSangre() != null) ? p.getTipoSangre() : "";
-            mdl.addRow(new Object[]{
-                p.getCedula(), p.getNombre(), sangre, p.getIdPaciente()
-            });
-        }
+        mdl.setColumnIdentifiers(
+            new String[]{"Cedula", "Nombre", "Tipo Sangre", "ID Paciente"});
+        for (Paciente p : lista)
+            mdl.addRow(new Object[]{p.getCedula(), p.getNombre(),
+                p.getTipoSangre() != null ? p.getTipoSangre() : "",
+                p.getIdPaciente()});
 
         JTable tbl = new JTable(mdl) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         tbl.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tbl.setRowHeight(24);
-        tbl.getTableHeader().setReorderingAllowed(false);
         tbl.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && tbl.getSelectedRow() >= 0)
@@ -404,18 +538,13 @@ public class HacerConsulta extends JDialog {
         btnCan.addActionListener(ev -> dlg.dispose());
         pnl.add(btnCan);
         dlg.add(pnl, BorderLayout.SOUTH);
-
         dlg.setVisible(true);
     }
 
-    private void seleccionarPaciente(JTable tbl, ArrayList<Paciente> lista, JDialog dlg) {
+    private void seleccionarPaciente(JTable tbl,
+            ArrayList<Paciente> lista, javax.swing.JDialog dlg) {
         int fila = tbl.getSelectedRow();
-        if (fila < 0) {
-            JOptionPane.showMessageDialog(dlg,
-                "Selecciona una fila primero", "Aviso",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (fila < 0) return;
         pacienteSeleccionado = lista.get(fila);
         txtCedulaPac.setText(pacienteSeleccionado.getCedula()
             + "  -  " + pacienteSeleccionado.getNombre());
@@ -424,7 +553,9 @@ public class HacerConsulta extends JDialog {
 
     private void limpiar() {
         enfermedadesSelected.clear();
-        modeloSel.setRowCount(0);
+        vacunasSelected.clear();
+        modeloEnfSel.setRowCount(0);
+        modeloVacSel.setRowCount(0);
         txtDiagnostico.setText("");
         txtCedulaPac.setText("");
         pacienteSeleccionado = null;
@@ -432,10 +563,11 @@ public class HacerConsulta extends JDialog {
         txtCodigo.setText("CON-" + Clinica.generadorCodigoConsulta);
         if (usuarioActual == null || !usuarioActual.esMedico())
             txtCedulaMed.setText("");
-        btnAgregar.setEnabled(false);
-        btnQuitar.setEnabled(false);
-        LocalDate hoy = LocalDate.now();
-        comboDia.setSelectedIndex(hoy.getDayOfMonth());
-        comboMes.setSelectedIndex(hoy.getMonthValue());
+        btnAgregarEnf.setEnabled(false);
+        btnQuitarEnf.setEnabled(false);
+        btnAgregarVac.setEnabled(false);
+        btnQuitarVac.setEnabled(false);
+        comboDia.setSelectedIndex(LocalDate.now().getDayOfMonth());
+        comboMes.setSelectedIndex(LocalDate.now().getMonthValue());
     }
 }

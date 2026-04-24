@@ -46,8 +46,10 @@ public class PacienteDAO extends BaseDAO {
                     ? rs.getDate("FechaNacimiento").toLocalDate() : null;
                 Vivienda viv = rs.getString("Id_Vivienda")!=null
                     ? new Vivienda(rs.getString("Id_Vivienda"), rs.getString("Direccion")) : null;
-                lista.add(new Paciente(rs.getString("cedula"), rs.getString("Nombre"),
-                    rs.getString("Genero"), fecha, rs.getString("Telefono"), viv,
+                lista.add(new Paciente(
+                    rs.getString("cedula"), rs.getString("Nombre"),
+                    rs.getString("Genero"), fecha,
+                    rs.getString("Telefono"), viv,
                     rs.getString("Id_Paciente"), rs.getString("Informacion"),
                     rs.getString("TipoSangre")));
             }
@@ -68,10 +70,14 @@ public class PacienteDAO extends BaseDAO {
                 if (rs.next()) {
                     LocalDate fecha = rs.getDate("FechaNacimiento")!=null
                         ? rs.getDate("FechaNacimiento").toLocalDate() : null;
-                    Vivienda viv = rs.getString("Id_Vivienda")!=null
-                        ? new Vivienda(rs.getString("Id_Vivienda"), rs.getString("Direccion")) : null;
-                    return new Paciente(rs.getString("cedula"), rs.getString("Nombre"),
-                        rs.getString("Genero"), fecha, rs.getString("Telefono"), viv,
+                    String idViv = rs.getString("Id_Vivienda");
+                    String dirViv = rs.getString("Direccion");
+                    Vivienda viv = idViv != null
+                        ? new Vivienda(idViv, dirViv) : null;
+                    return new Paciente(
+                        rs.getString("cedula"), rs.getString("Nombre"),
+                        rs.getString("Genero"), fecha,
+                        rs.getString("Telefono"), viv,
                         rs.getString("Id_Paciente"), rs.getString("Informacion"),
                         rs.getString("TipoSangre"));
                 }
@@ -84,15 +90,21 @@ public class PacienteDAO extends BaseDAO {
         try (Connection con = getConexion();
              PreparedStatement ps = con.prepareStatement(
             "SELECT p.cedula,p.Nombre,p.Genero,p.Telefono,p.FechaNacimiento,"
-            + "pa.Id_Paciente,pa.Informacion,pa.TipoSangre,pa.Id_Vivienda"
-            + " FROM PERSONA p JOIN PACIENTE pa ON p.cedula=pa.cedula WHERE p.Nombre=?")) {
+            + "pa.Id_Paciente,pa.Informacion,pa.TipoSangre,v.Id_Vivienda,v.Direccion"
+            + " FROM PERSONA p JOIN PACIENTE pa ON p.cedula=pa.cedula"
+            + " LEFT JOIN VIVIENDA v ON pa.Id_Vivienda=v.Id_Vivienda"
+            + " WHERE p.Nombre=?")) {
             ps.setString(1, nombre);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     LocalDate fecha = rs.getDate("FechaNacimiento")!=null
                         ? rs.getDate("FechaNacimiento").toLocalDate() : null;
-                    return new Paciente(rs.getString("cedula"), rs.getString("Nombre"),
-                        rs.getString("Genero"), fecha, rs.getString("Telefono"), null,
+                    Vivienda viv = rs.getString("Id_Vivienda")!=null
+                        ? new Vivienda(rs.getString("Id_Vivienda"), rs.getString("Direccion")) : null;
+                    return new Paciente(
+                        rs.getString("cedula"), rs.getString("Nombre"),
+                        rs.getString("Genero"), fecha,
+                        rs.getString("Telefono"), viv,
                         rs.getString("Id_Paciente"), rs.getString("Informacion"),
                         rs.getString("TipoSangre"));
                 }

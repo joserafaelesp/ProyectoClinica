@@ -33,9 +33,13 @@ public class ListarPaciente extends JDialog {
     private DefaultTableModel model;
     private JButton           btnBorrar;
     private JButton           btnModificar;
-    private Paciente          selected = null;
+    private Paciente          selected    = null;
+    private boolean           soloLectura = false;
 
-    public ListarPaciente() {
+    public ListarPaciente() { this(false); }
+
+    public ListarPaciente(boolean soloLectura) {
+        this.soloLectura = soloLectura;
         setTitle("Ver Pacientes");
         setBounds(100, 100, 950, 500);
         getContentPane().setLayout(new BorderLayout());
@@ -149,6 +153,7 @@ public class ListarPaciente extends JDialog {
                         JOptionPane.showMessageDialog(null,
                             "Paciente eliminado correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }
@@ -158,6 +163,12 @@ public class ListarPaciente extends JDialog {
         JButton btnSalir = new JButton("Salir");
         btnSalir.addActionListener(e -> dispose());
         buttonPane.add(btnSalir);
+
+        // Modo solo lectura — ocultar modificar y borrar
+        if (soloLectura) {
+            btnModificar.setVisible(false);
+            btnBorrar.setVisible(false);
+        }
 
         cargarDatos();
     }

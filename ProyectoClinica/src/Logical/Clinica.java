@@ -36,7 +36,7 @@ public class Clinica {
         return clinica;
     }
 
-    private void actualizarGeneradores() {
+    public void actualizarGeneradores() {
         // Sincronizar con usuarios MED- para evitar colisión de IDs
         int maxMedico  = medicoDAO.obtenerMaxNumero("MEDICO",  "Id_Medico",  "MED-");
         int maxUsuMed  = usuarioDAO.obtenerMaxNumero("USUARIO","Id_Usuario", "MED-");
@@ -84,6 +84,7 @@ public class Clinica {
     public void modificarVacuna(String id, Vacuna v) { vacunaDAO.actualizar(v); }
     public void borrarVacuna(String id)              { vacunaDAO.eliminar(id); }
     public ArrayList<Vacuna> getMisVacunas()         { return vacunaDAO.listarTodos(); }
+    public Vacuna obtenerVacunaById(String id)       { return vacunaDAO.buscarPorId(id); }
     public Vacuna obtenervacuna(String id)           { return vacunaDAO.buscarPorId(id); }
 
     // ── ENFERMEDAD ───────────────────────────────────────────────
@@ -102,9 +103,13 @@ public class Clinica {
 
     // ── CITA ─────────────────────────────────────────────────────
     public void agregarCita(Cita cita) { citaDAO.insertar(cita); generadorCodigoCita++; }
+    public Cita obtenerCitaById(String id)        { return citaDAO.buscarPorId(id); }
     public void modificarCita(String id, Cita c) { citaDAO.actualizar(c); }
     public void borrarCita(String id)             { citaDAO.eliminar(id); }
     public ArrayList<Cita> getMisCitas()          { return citaDAO.listarTodos(); }
+    public ArrayList<Cita> getCitasPorMedico(String cedulaMedico) {
+        return citaDAO.listarPorMedico(cedulaMedico);
+    }
 
     // ── CONSULTA ─────────────────────────────────────────────────
     public void agregarConsulta(Consultas consulta) {
@@ -118,9 +123,19 @@ public class Clinica {
         generadorCodigoConsulta++;
     }
     public void insertarConsulta(Consultas c) { agregarConsulta(c); }
+    public List<Logical.Vacuna> obtenerVacunasConsulta(String idConsulta) {
+        return consultaDAO.leerVacunas(idConsulta);
+    }
+
+    public List<Enfermedad> obtenerEnfermedadesConsulta(String idConsulta) {
+        return consultaDAO.leerEnfermedades(idConsulta);
+    }
     public void modificarConsulta(String id, Consultas c) { consultaDAO.actualizar(c); }
     public void borrarConsulta(String id)                 { consultaDAO.eliminar(id); }
     public ArrayList<Consultas> getMisConsultas()         { return consultaDAO.listarTodos(); }
+    public ArrayList<Consultas> getConsultasPorMedico(String cedulaMedico) {
+        return consultaDAO.listarPorMedico(cedulaMedico);
+    }
 
     // ── EXAMEN ───────────────────────────────────────────────────
     public void agregarExamen(Examen examen) { examenDAO.insertar(examen); generadorCodigoExamen++; }

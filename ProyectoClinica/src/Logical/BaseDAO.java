@@ -34,7 +34,7 @@ public abstract class BaseDAO {
         for (int i = 0; i < params.length; i++) {
             Object p = params[i];
             if (p == null)
-                ps.setNull(i + 1, Types.NULL);
+                ps.setNull(i + 1, Types.VARCHAR);
             else if (p instanceof String)
                 ps.setString(i + 1, (String) p);
             else if (p instanceof Integer)

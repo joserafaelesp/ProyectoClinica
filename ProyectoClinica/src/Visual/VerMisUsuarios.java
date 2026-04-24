@@ -73,13 +73,10 @@ public class VerMisUsuarios extends JDialog {
                     btnBorrar.setEnabled(true);
                     btnModificar.setEnabled(true);
                     String idUsuario = model.getValueAt(index, 0).toString();
-                    System.out.println("[DEBUG] ID leído de la tabla: " + idUsuario);
-                    selected = Clinica.getInstance().buscarUsuarioPorCodigo(idUsuario);
-                    if (selected != null)
-                        System.out.println("[DEBUG] Usuario encontrado: "
-                            + selected.getIdUsuario() + " / " + selected.getNombreUser());
-                    else
-                        System.out.println("[DEBUG] buscarUsuarioPorCodigo retornó null");
+                    selected = Clinica.getInstance()
+                        .buscarUsuarioPorCodigo(idUsuario);
+                    System.out.println("Usuario seleccionado: "
+                        + selected.getNombreUser());
                 }
             }
         });
@@ -156,6 +153,7 @@ public class VerMisUsuarios extends JDialog {
                         JOptionPane.showMessageDialog(null,
                             "Usuario eliminado correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }
@@ -208,5 +206,4 @@ public class VerMisUsuarios extends JDialog {
         btnBorrar.setEnabled(false);
         btnModificar.setEnabled(false);
     }
-    
 }

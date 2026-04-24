@@ -153,6 +153,7 @@ public class ListarEnfermedad extends JDialog {
                         JOptionPane.showMessageDialog(null,
                             "Enfermedad eliminada correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }

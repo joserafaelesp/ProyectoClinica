@@ -151,6 +151,7 @@ public class ListarVacuna extends JDialog {
                         JOptionPane.showMessageDialog(null,
                             "Vacuna eliminada correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }

@@ -160,6 +160,7 @@ public class ListarMedico extends JDialog {
                         JOptionPane.showMessageDialog(null,
                             "Médico eliminado correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }
