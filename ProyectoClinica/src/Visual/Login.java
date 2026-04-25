@@ -136,6 +136,7 @@ public class Login extends JFrame {
                         main.listadoConsultas.setVisible(false);
 
                     } else if (usuarioEncontrado.esSecretaria()) {
+                        main.mInformes.setVisible(false);
                         // ── SECRETARIA ───────────────────────────────
                         // Puede: registrar pacientes, ver pacientes,
                         //        ver medicos (solo lectura), listar citas
@@ -151,6 +152,8 @@ public class Login extends JFrame {
                         // Registros: pacientes y viviendas
                         // (necesita viviendas para asignarlas a pacientes)
                         main.crearVacuna.setVisible(false);
+                        main.crearExamen.setVisible(false);
+                        main.listadoExamen.setVisible(false);
                         main.crearEnfermedad.setVisible(false);
                         main.crearVivienda.setVisible(true);   // ← puede crear viviendas
 
@@ -159,12 +162,15 @@ public class Login extends JFrame {
                         main.listadoEnfermedad.setVisible(false);
                         main.listaVivienda.setVisible(true);   // ← puede ver/editar viviendas
 
+                        // Historial paciente: SOLO médico — info clínica confidencial
+                        main.historialPaciente.setVisible(false);
+
                         // Modo secretaria: medico solo lectura,
                         // registrar persona solo pacientes
-                        main.historialPaciente.setVisible(false);
                         main.setModoSecretaria(true);
 
                     } else if (usuarioEncontrado.esMedico()) {
+                        main.mInformes.setVisible(false);
                         // ── MEDICO ───────────────────────────────────
                         // Puede: ver/completar sus citas, ver sus consultas,
                         //        registrar enfermedades y vacunas, ver pacientes
@@ -184,6 +190,8 @@ public class Login extends JFrame {
                         main.crearVivienda.setVisible(false);
                         main.crearEnfermedad.setVisible(true);
                         main.crearVacuna.setVisible(true);
+                        main.crearExamen.setVisible(true);
+                        main.listadoExamen.setVisible(true);
 
                         // INVENTARIO: solo pacientes — sin medicos ni viviendas
                         main.listaMedico.setVisible(false);

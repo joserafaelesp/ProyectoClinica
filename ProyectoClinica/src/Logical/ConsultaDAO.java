@@ -10,13 +10,17 @@ public class ConsultaDAO extends BaseDAO {
             Connection con = getConexion();
             con.setAutoCommit(false);
             try (PreparedStatement ps = con.prepareStatement(
-                "INSERT INTO CONSULTA (Id_Consulta,Fecha_Consulta,Diagnostico,Id_Historial,cedula,cedula_paciente) VALUES (?,?,?,?,?,?)")) {
+                "INSERT INTO CONSULTA (Id_Consulta,Fecha_Consulta,Diagnostico,Id_Historial,cedula,cedula_paciente,Id_Cita) VALUES (?,?,?,?,?,?,?)")) {
                 ps.setString(1, consulta.getIdConsulta());
                 ps.setDate(2, new java.sql.Date(consulta.getFechaConsulta().getTime()));
                 ps.setString(3, consulta.getDiagnostico());
                 ps.setString(4, idHistorial);
                 ps.setString(5, consulta.getDoctor()  != null ? consulta.getDoctor().getCedula()  : null);
                 ps.setString(6, consulta.getPatient() != null ? consulta.getPatient().getCedula() : null);
+                if (consulta.getIdCita() != null)
+                    ps.setString(7, consulta.getIdCita());
+                else
+                    ps.setNull(7, java.sql.Types.VARCHAR);
                 ps.executeUpdate();
             }
             if (idsEnfermedades!=null && !idsEnfermedades.isEmpty()) {
@@ -56,7 +60,7 @@ public class ConsultaDAO extends BaseDAO {
         try (Connection con = getConexion();
              Statement st = con.createStatement();
              ResultSet rs = st.executeQuery(
-                "SELECT Id_Consulta,Fecha_Consulta,Diagnostico,cedula,cedula_paciente FROM CONSULTA ORDER BY Fecha_Consulta DESC")) {
+                "SELECT Id_Consulta,Fecha_Consulta,Diagnostico,cedula,cedula_paciente,Id_Cita FROM CONSULTA ORDER BY Fecha_Consulta DESC")) {
             MedicoDAO   mD = new MedicoDAO();
             PacienteDAO pD = new PacienteDAO();
             while (rs.next()) {
@@ -152,7 +156,7 @@ public class ConsultaDAO extends BaseDAO {
         ArrayList<Consultas> lista = new ArrayList<>();
         try (Connection con = getConexion();
              PreparedStatement ps = con.prepareStatement(
-            "SELECT Id_Consulta,Fecha_Consulta,Diagnostico,cedula,cedula_paciente"
+            "SELECT Id_Consulta,Fecha_Consulta,Diagnostico,cedula,cedula_paciente,Id_Cita"
             + " FROM CONSULTA WHERE cedula=? ORDER BY Fecha_Consulta DESC")) {
             ps.setString(1, cedulaMedico);
             MedicoDAO   mD = new MedicoDAO();
@@ -180,9 +184,10 @@ public class ConsultaDAO extends BaseDAO {
             new java.sql.Date(c.getFechaConsulta().getTime()), c.getDiagnostico(), c.getIdConsulta());
     }
     public boolean eliminar(String id) {
-        // Borrar relaciones antes de borrar la consulta
+        // Borrar todas las relaciones antes de borrar la consulta
         ejecutar("DELETE FROM CONSULTA_ENFERMEDAD WHERE Id_Consulta=?", id);
         ejecutar("DELETE FROM CONSULTA_VACUNA WHERE Id_Consulta=?", id);
+        ejecutar("DELETE FROM CONSULTA_EXAMEN WHERE Id_Consulta=?", id);
         return ejecutar("DELETE FROM CONSULTA WHERE Id_Consulta=?", id);
     }
     public List<Enfermedad> listarEnfermedadesDiagnosticadas() {

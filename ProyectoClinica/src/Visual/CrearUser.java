@@ -2,6 +2,7 @@ package Visual;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FlowLayout;
 import java.awt.SystemColor;
 import java.awt.event.ActionEvent;
@@ -69,15 +70,28 @@ public class CrearUser extends JDialog {
 
         // ── ID automático por rol ────────────────────────────────
         JLabel lblCodigo = new JLabel("ID Sistema:");
-        lblCodigo.setBounds(20, 65, 80, 14);
+        lblCodigo.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblCodigo.setBounds(20, 65, 90, 22);
         panel.add(lblCodigo);
 
         txtCodigo = new JTextField("(seleccione un rol)");
         txtCodigo.setEnabled(false);
-        txtCodigo.setBackground(new Color(220, 220, 220));
-        txtCodigo.setForeground(Color.DARK_GRAY);
-        txtCodigo.setBounds(110, 62, 200, 20);
+        txtCodigo.setBackground(new Color(230, 240, 255));   // azul claro
+        txtCodigo.setForeground(new Color(30, 60, 120));     // azul oscuro visible
+        txtCodigo.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        txtCodigo.setHorizontalAlignment(JTextField.CENTER);
+        txtCodigo.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+            javax.swing.BorderFactory.createLineBorder(new Color(150, 180, 220), 1),
+            javax.swing.BorderFactory.createEmptyBorder(2, 6, 2, 6)));
+        txtCodigo.setBounds(115, 60, 160, 28);
         panel.add(txtCodigo);
+
+        // Etiqueta descriptiva debajo del ID
+        JLabel lblIdNota = new JLabel("Generado automaticamente segun el rol");
+        lblIdNota.setFont(new Font("Segoe UI", Font.ITALIC, 10));
+        lblIdNota.setForeground(Color.GRAY);
+        lblIdNota.setBounds(115, 90, 240, 14);
+        panel.add(lblIdNota);
 
         // ── Username ─────────────────────────────────────────────
         JLabel lblUsername = new JLabel("Username:");
@@ -198,7 +212,7 @@ public class CrearUser extends JDialog {
                     regMedico.setVisible(true);
 
                 } else {
-                    // ── ADMIN / SECRETARIA: solo en USUARIO ──────
+                    // ── ADMIN / SECRETARIA: solo en USUARIO, no en PERSONA
                     Clinica.getInstance().agregarUsuario(userObj);
                     JOptionPane.showMessageDialog(null,
                         "Usuario '" + username + "' creado correctamente.\n"

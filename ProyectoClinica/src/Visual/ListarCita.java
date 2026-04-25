@@ -65,8 +65,8 @@ public class ListarCita extends JDialog {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         model.setColumnIdentifiers(new String[]{
-            "ID Cita", "Paciente", "Medico", "Especialidad",
-            "Fecha", "Hora", "Completada"});
+            "ID Cita", "ID Paciente", "Paciente", "ID Medico",
+            "Medico", "Especialidad", "Fecha", "Hora", "Completada"});
 
         table = new JTable(model);
         table.getTableHeader().setReorderingAllowed(false);
@@ -77,13 +77,15 @@ public class ListarCita extends JDialog {
         table.getTableHeader().setBackground(SystemColor.activeCaption);
 
         // Ancho de columnas
-        table.getColumnModel().getColumn(0).setPreferredWidth(80);
-        table.getColumnModel().getColumn(1).setPreferredWidth(160);
-        table.getColumnModel().getColumn(2).setPreferredWidth(160);
-        table.getColumnModel().getColumn(3).setPreferredWidth(120);
-        table.getColumnModel().getColumn(4).setPreferredWidth(100);
-        table.getColumnModel().getColumn(5).setPreferredWidth(70);
-        table.getColumnModel().getColumn(6).setPreferredWidth(90);
+        table.getColumnModel().getColumn(0).setPreferredWidth(75);
+        table.getColumnModel().getColumn(1).setPreferredWidth(70);
+        table.getColumnModel().getColumn(2).setPreferredWidth(130);
+        table.getColumnModel().getColumn(3).setPreferredWidth(65);
+        table.getColumnModel().getColumn(4).setPreferredWidth(130);
+        table.getColumnModel().getColumn(5).setPreferredWidth(100);
+        table.getColumnModel().getColumn(6).setPreferredWidth(85);
+        table.getColumnModel().getColumn(7).setPreferredWidth(70);
+        table.getColumnModel().getColumn(8).setPreferredWidth(80);
 
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -204,14 +206,14 @@ public class ListarCita extends JDialog {
                     int conf = JOptionPane.showConfirmDialog(null,
                         msgConf, "Confirmar", JOptionPane.YES_NO_OPTION);
                     if (conf == JOptionPane.YES_OPTION) {
-                        // Marcar como completada en BD
-                        selected.setCompletada(true);
-                        Clinica.getInstance().modificarCita(
-                            selected.getIdCita(), selected);
-                        // Abrir HacerConsulta con datos precargados de la cita
-                        HacerConsulta hc = new HacerConsulta(usuarioActual, selected);
+                        // NO marcar como completada todavía
+                        // Se marcará solo si el médico confirma la consulta
+                        HacerConsulta hc = new HacerConsulta(
+                            usuarioActual, selected);
                         hc.setModal(true);
                         hc.setVisible(true);
+                        // Recargar después — si se registró la consulta
+                        // HacerConsulta ya marcó la cita como completada
                         cargarDatos();
                         resetSeleccion();
                     }
@@ -257,9 +259,13 @@ public class ListarCita extends JDialog {
                 ? c.getHoraCita() : "";
             String completada  = c.isCompletada() ? "Si" : "Pendiente";
 
+            String idPac = c.getPaciente() != null
+                ? c.getPaciente().getIdPaciente() : "";
+            String idMed = c.getDoc() != null
+                ? c.getDoc().getIdMedico() : "";
             model.addRow(new Object[]{
-                c.getIdCita(), paciente, medico,
-                especialidad, fecha, hora, completada
+                c.getIdCita(), idPac, paciente,
+                idMed, medico, especialidad, fecha, hora, completada
             });
         }
         System.out.println("Citas cargadas: " + lista.size());

@@ -35,6 +35,7 @@ import Logical.Medico;
 import Logical.Paciente;
 import Logical.Usuario;
 import Logical.Vacuna;
+import Logical.Examen;
 
 public class HacerConsulta extends JDialog {
 
@@ -67,9 +68,15 @@ public class HacerConsulta extends JDialog {
 
     private ArrayList<Enfermedad> enfermedadesSelected = new ArrayList<Enfermedad>();
     private ArrayList<Vacuna>     vacunasSelected       = new ArrayList<Vacuna>();
+    private ArrayList<Examen>    examenesOrdenados     = new ArrayList<Examen>();
+
+    // Tabla examenes
+    private DefaultTableModel    modeloExamen;
+    private JTable               tablaExamen;
     private Usuario               usuarioActual;
     private Paciente              pacienteSeleccionado  = null;
     private boolean               vieneDeUnaCita        = false;
+    private Cita                  citaOrigen            = null; // cita que originó esta consulta
 
     private static final String[] MESES = {
         "(mes)", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -81,6 +88,7 @@ public class HacerConsulta extends JDialog {
     public HacerConsulta(Usuario user, Cita cita) {
         this.usuarioActual = user;
         vieneDeUnaCita     = (cita != null);
+        citaOrigen         = cita;
 
         setTitle("Registrar Consulta Medica");
         setBounds(100, 100, 750, 620);
@@ -106,8 +114,9 @@ public class HacerConsulta extends JDialog {
         addLabel(pnlDatos, "Codigo:", 10, 28);
         txtCodigo = new JTextField("CON-" + Clinica.generadorCodigoConsulta);
         txtCodigo.setEnabled(false);
-        txtCodigo.setBackground(new Color(220, 220, 220));
-        txtCodigo.setForeground(Color.DARK_GRAY);
+        txtCodigo.setBackground(new Color(230, 240, 255));
+        txtCodigo.setForeground(new Color(30, 60, 120));
+        txtCodigo.setFont(new Font("Segoe UI", Font.BOLD, 13));
         txtCodigo.setBounds(80, 25, 110, 22);
         pnlDatos.add(txtCodigo);
 
@@ -155,7 +164,7 @@ public class HacerConsulta extends JDialog {
             if (medActual != null) {
                 txtCedulaMed.setText(medActual.getCedula());
                 txtCedulaMed.setEnabled(false);
-                txtCedulaMed.setBackground(new Color(220, 220, 220));
+                txtCedulaMed.setBackground(new Color(230, 240, 255));
             }
         }
 
@@ -168,14 +177,17 @@ public class HacerConsulta extends JDialog {
         addLabel(pnlDatos, "Paciente:", 10, 98);
         txtCedulaPac = new JTextField();
         txtCedulaPac.setEditable(false);
-        txtCedulaPac.setBackground(new Color(220, 220, 220));
-        txtCedulaPac.setForeground(Color.DARK_GRAY);
+        txtCedulaPac.setBackground(new Color(230, 240, 255));
+        txtCedulaPac.setForeground(new Color(30, 60, 120));
+        txtCedulaPac.setFont(new Font("Segoe UI", Font.BOLD, 13));
         txtCedulaPac.setBounds(80, 95, 180, 22);
         pnlDatos.add(txtCedulaPac);
 
         JButton btnSelPac = new JButton("Seleccionar...");
         btnSelPac.setBounds(268, 95, 110, 22);
         btnSelPac.addActionListener(e -> abrirSelectorPaciente());
+        // Si viene de una cita el paciente ya está asignado — ocultar botón
+        btnSelPac.setVisible(!vieneDeUnaCita);
         pnlDatos.add(btnSelPac);
 
         // Diagnostico
@@ -304,6 +316,99 @@ public class HacerConsulta extends JDialog {
         tablaVacSel.getSelectionModel().addListSelectionListener(
             e -> btnQuitarVac.setEnabled(tablaVacSel.getSelectedRow() >= 0));
 
+        // ── Pestaña Examenes — catálogo N:M ─────────────────────
+        JPanel pnlExam = new JPanel(null);
+        pnlExam.setBackground(SystemColor.info);
+        tabs.addTab("  Examenes ordenados  ", pnlExam);
+
+        // Tabla catálogo disponibles
+        JLabel lblExamDisp = new JLabel("Catalogo de examenes:");
+        lblExamDisp.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblExamDisp.setBounds(10, 15, 200, 20);
+        pnlExam.add(lblExamDisp);
+
+        DefaultTableModel modeloExamDisp = new DefaultTableModel(0, 2);
+        modeloExamDisp.setColumnIdentifiers(new String[]{"ID", "Nombre"});
+        JTable tablaExamDisp = new JTable(modeloExamDisp) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tablaExamDisp.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaExamDisp.setRowHeight(24);
+        tablaExamDisp.getTableHeader().setReorderingAllowed(false);
+        tablaExamDisp.getTableHeader().setBackground(SystemColor.activeCaption);
+        tablaExamDisp.getColumnModel().getColumn(0).setPreferredWidth(60);
+        tablaExamDisp.getColumnModel().getColumn(1).setPreferredWidth(200);
+        JScrollPane spExamDisp = new JScrollPane(tablaExamDisp);
+        spExamDisp.setBounds(10, 38, 280, 250);
+        pnlExam.add(spExamDisp);
+
+        // Botones centro
+        JButton btnAgregarExam = new JButton("Ordenar >");
+        btnAgregarExam.setEnabled(false);
+        btnAgregarExam.setBackground(new Color(70, 130, 180));
+        btnAgregarExam.setForeground(Color.WHITE);
+        btnAgregarExam.setFocusPainted(false);
+        btnAgregarExam.setBounds(300, 120, 100, 30);
+        pnlExam.add(btnAgregarExam);
+
+        JButton btnQuitarExam = new JButton("< Quitar");
+        btnQuitarExam.setEnabled(false);
+        btnQuitarExam.setBounds(300, 160, 100, 30);
+        pnlExam.add(btnQuitarExam);
+
+        // Tabla examenes ordenados
+        JLabel lblExamSel = new JLabel("Ordenados en esta consulta:");
+        lblExamSel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblExamSel.setBounds(410, 15, 250, 20);
+        pnlExam.add(lblExamSel);
+
+        modeloExamen = new DefaultTableModel(0, 3);
+        modeloExamen.setColumnIdentifiers(new String[]{"ID", "Nombre", "Descripcion"});
+        tablaExamen = new JTable(modeloExamen) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tablaExamen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tablaExamen.setRowHeight(24);
+        tablaExamen.getTableHeader().setReorderingAllowed(false);
+        tablaExamen.getTableHeader().setBackground(SystemColor.activeCaption);
+        tablaExamen.getColumnModel().getColumn(0).setPreferredWidth(55);
+        tablaExamen.getColumnModel().getColumn(1).setPreferredWidth(120);
+        tablaExamen.getColumnModel().getColumn(2).setPreferredWidth(120);
+        JScrollPane spExamSel = new JScrollPane(tablaExamen);
+        spExamSel.setBounds(410, 38, 295, 250);
+        pnlExam.add(spExamSel);
+
+        // Cargar catálogo
+        for (Examen ex : Clinica.getInstance().getMisExamenes())
+            modeloExamDisp.addRow(new Object[]{ex.getIdExamen(), ex.getNombreExamen()});
+
+        // Listeners
+        tablaExamDisp.getSelectionModel().addListSelectionListener(
+            e -> btnAgregarExam.setEnabled(tablaExamDisp.getSelectedRow() >= 0));
+        tablaExamen.getSelectionModel().addListSelectionListener(
+            e -> btnQuitarExam.setEnabled(tablaExamen.getSelectedRow() >= 0));
+
+        btnAgregarExam.addActionListener(e -> {
+            int fila = tablaExamDisp.getSelectedRow();
+            if (fila < 0) return;
+            String idEx = (String) modeloExamDisp.getValueAt(fila, 0);
+            Examen ex = Clinica.getInstance().obtenerExamenById(idEx);
+            if (ex != null && !examenesOrdenados.contains(ex)) {
+                examenesOrdenados.add(ex);
+                modeloExamen.addRow(new Object[]{
+                    ex.getIdExamen(), ex.getNombreExamen(),
+                    ex.getDescripcion() != null ? ex.getDescripcion() : ""});
+            }
+        });
+
+        btnQuitarExam.addActionListener(e -> {
+            int fila = tablaExamen.getSelectedRow();
+            if (fila < 0) return;
+            examenesOrdenados.remove(fila);
+            modeloExamen.removeRow(fila);
+            btnQuitarExam.setEnabled(false);
+        });
+
         // ══════════════════════════════════════════════════════════
         // BOTONES
         // ══════════════════════════════════════════════════════════
@@ -327,7 +432,7 @@ public class HacerConsulta extends JDialog {
             if (cita.getDoc() != null) {
                 txtCedulaMed.setText(cita.getDoc().getCedula());
                 txtCedulaMed.setEnabled(false);
-                txtCedulaMed.setBackground(new Color(220, 220, 220));
+                txtCedulaMed.setBackground(new Color(230, 240, 255));
             }
             if (cita.getPaciente() != null) {
                 pacienteSeleccionado = cita.getPaciente();
@@ -468,13 +573,54 @@ public class HacerConsulta extends JDialog {
             idsVacunas.add(v.getIdVacuna());
         nueva.setVacunasAplicadas(idsVacunas);
 
+        // Vincular la cita si viene de una
+        if (citaOrigen != null)
+            nueva.setIdCita(citaOrigen.getIdCita());
+
         Clinica.getInstance().agregarConsulta(nueva);
+
+        // Vincular examenes del catálogo a esta consulta via CONSULTA_EXAMEN
+        for (Examen ex : examenesOrdenados) {
+            Clinica.getInstance().vincularExamenConsulta(
+                nueva.getIdConsulta(), ex.getIdExamen());
+        }
+
+        // Marcar la cita como completada SOLO si la consulta se registró bien
+        if (citaOrigen != null) {
+            citaOrigen.setCompletada(true);
+            Clinica.getInstance().modificarCita(
+                citaOrigen.getIdCita(), citaOrigen);
+        }
+
         limpiar();
 
+        // Construir resumen de enfermedades
+        StringBuilder resEnf = new StringBuilder();
+        if (enfermedadesSelected.isEmpty()) {
+            resEnf.append("   (ninguna)");
+        } else {
+            for (Enfermedad ef : enfermedadesSelected)
+                resEnf.append("   • ").append(ef.getNombreEnfermedad()).append("\n");
+        }
+        // Construir resumen de vacunas
+        StringBuilder resVac = new StringBuilder();
+        if (vacunasSelected.isEmpty()) {
+            resVac.append("   (ninguna)");
+        } else {
+            for (Vacuna v : vacunasSelected)
+                resVac.append("   • ").append(v.getNombreVacuna()).append("\n");
+        }
+
         JOptionPane.showMessageDialog(this,
-            "Consulta registrada correctamente\n"
-            + "Enfermedades: " + enfermedadesSelected.size() + "\n"
-            + "Vacunas aplicadas: " + vacunasSelected.size(),
+            "Consulta registrada correctamente\n\n"
+            + "Medico:   " + (medico != null ? medico.getNombre() : "") + "\n"
+            + "Paciente: " + (paciente != null ? paciente.getNombre() : "") + "\n"
+            + "Fecha:    " + obtenerFecha().toString() + "\n\n"
+            + "Enfermedades diagnosticadas (" + enfermedadesSelected.size() + "):\n"
+            + resEnf.toString() + "\n"
+            + "Vacunas aplicadas (" + vacunasSelected.size() + "):\n"
+            + resVac.toString() + "\n"
+            + "Examenes ordenados: " + examenesOrdenados.size(),
             "Exito", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -567,6 +713,8 @@ public class HacerConsulta extends JDialog {
         btnQuitarEnf.setEnabled(false);
         btnAgregarVac.setEnabled(false);
         btnQuitarVac.setEnabled(false);
+        examenesOrdenados.clear();
+        if (modeloExamen != null) modeloExamen.setRowCount(0);
         comboDia.setSelectedIndex(LocalDate.now().getDayOfMonth());
         comboMes.setSelectedIndex(LocalDate.now().getMonthValue());
     }

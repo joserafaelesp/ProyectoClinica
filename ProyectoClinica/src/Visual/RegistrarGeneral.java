@@ -36,6 +36,9 @@ public class RegistrarGeneral extends JDialog {
     private static final String[] TIPOS_SANGRE =
         {"(seleccionar)", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
 
+    private static final Color FIXED_BG = new Color(230, 240, 255);
+    private static final Color FIXED_FG = new Color(30, 60, 120);
+
     public RegistrarGeneral(Persona person, int index) {
         miPersona      = person;
         esModificacion = (person != null);
@@ -62,7 +65,9 @@ public class RegistrarGeneral extends JDialog {
         panel_DG.setLayout(null);
 
         // Cedula
-        new JLabel("Cedula:") {{ setBounds(10, 26, 52, 14); panel_DG.add(this); }};
+        JLabel lblCedula = new JLabel("Cedula:");
+        lblCedula.setBounds(10, 26, 52, 14);
+        panel_DG.add(lblCedula);
         txtCedula = new JTextField();
         txtCedula.setBounds(66, 23, 152, 20);
         txtCedula.setEnabled(!esModificacion);
@@ -74,7 +79,9 @@ public class RegistrarGeneral extends JDialog {
         panel_DG.add(txtCedula);
 
         // Nombre
-        new JLabel("Nombre:") {{ setBounds(10, 60, 52, 14); panel_DG.add(this); }};
+        JLabel lblNombre = new JLabel("Nombre:");
+        lblNombre.setBounds(10, 60, 52, 14);
+        panel_DG.add(lblNombre);
         txtNombre = new JTextField();
         txtNombre.setBounds(66, 57, 152, 20);
         txtNombre.addKeyListener(new KeyAdapter() {
@@ -86,7 +93,9 @@ public class RegistrarGeneral extends JDialog {
         panel_DG.add(txtNombre);
 
         // Telefono
-        new JLabel("Telefono:") {{ setBounds(10, 95, 60, 14); panel_DG.add(this); }};
+        JLabel lblTelefono = new JLabel("Telefono:");
+        lblTelefono.setBounds(10, 95, 60, 14);
+        panel_DG.add(lblTelefono);
         txtTelefono = new JTextField();
         txtTelefono.setBounds(74, 92, 144, 20);
         txtTelefono.addKeyListener(new KeyAdapter() {
@@ -97,13 +106,17 @@ public class RegistrarGeneral extends JDialog {
         panel_DG.add(txtTelefono);
 
         // Genero
-        new JLabel("Genero:") {{ setBounds(10, 155, 52, 14); panel_DG.add(this); }};
+        JLabel lblGenero = new JLabel("Genero:");
+        lblGenero.setBounds(10, 155, 52, 14);
+        panel_DG.add(lblGenero);
         comboBoxGender = new JComboBox<>(new String[]{"Elegir", "Masculino", "Femenino"});
         comboBoxGender.setBounds(66, 152, 110, 22);
         panel_DG.add(comboBoxGender);
 
         // Fecha nacimiento
-        new JLabel("Fecha Nacimiento:") {{ setBounds(255, 26, 120, 14); panel_DG.add(this); }};
+        JLabel lblFecha = new JLabel("Fecha Nacimiento:");
+        lblFecha.setBounds(255, 26, 120, 14);
+        panel_DG.add(lblFecha);
         dateChooser = new JDateChooser();
         dateChooser.setDateFormatString("dd/MM/yyyy");
         dateChooser.setBounds(378, 20, 150, 28);
@@ -111,7 +124,9 @@ public class RegistrarGeneral extends JDialog {
         panel_DG.add(dateChooser);
 
         // Vivienda
-        new JLabel("Vivienda:") {{ setBounds(255, 65, 70, 14); panel_DG.add(this); }};
+        JLabel lblViv = new JLabel("Vivienda:");
+        lblViv.setBounds(255, 65, 70, 14);
+        panel_DG.add(lblViv);
         txtVivienda = new JTextField("(ninguna seleccionada)");
         txtVivienda.setEditable(false);
         txtVivienda.setBackground(new Color(230, 230, 230));
@@ -123,8 +138,10 @@ public class RegistrarGeneral extends JDialog {
         btnSelViv.addActionListener(e -> abrirSelectorVivienda());
         panel_DG.add(btnSelViv);
 
-        // Rol — solo Paciente/Medico, NO Admin ni Secretaria
-        new JLabel("Rol:") {{ setBounds(255, 105, 30, 14); panel_DG.add(this); }};
+        // Rol — solo Paciente/Medico
+        JLabel lblRol = new JLabel("Rol:");
+        lblRol.setBounds(255, 105, 30, 14);
+        panel_DG.add(lblRol);
 
         rdbtnPaciente = new JRadioButton("Paciente");
         rdbtnPaciente.setBackground(SystemColor.info);
@@ -145,10 +162,7 @@ public class RegistrarGeneral extends JDialog {
             panel_Paciente.setVisible(false);
         });
         panel_DG.add(rdbtnMedico);
-
-        // Por defecto radio Medico oculto — solo visible desde CrearUser
         rdbtnMedico.setVisible(false);
-        // Paciente preseleccionado por defecto
         rdbtnPaciente.setSelected(true);
 
         // ── Panel Medico ──────────────────────────────────────────
@@ -160,14 +174,20 @@ public class RegistrarGeneral extends JDialog {
         panel_Medico.setLayout(null);
         panel_Medico.setVisible(false);
 
-        new JLabel("Codigo:") {{ setBounds(10, 25, 50, 14); panel_Medico.add(this); }};
+        JLabel lblCodMed = new JLabel("Codigo:");
+        lblCodMed.setBounds(10, 25, 50, 14);
+        panel_Medico.add(lblCodMed);
         txtCodeMed = new JTextField("MED-" + Clinica.generadorCodigoidMedico);
         txtCodeMed.setEnabled(false);
-        txtCodeMed.setBackground(SystemColor.info);
+        txtCodeMed.setBackground(FIXED_BG);
+        txtCodeMed.setForeground(FIXED_FG);
+        txtCodeMed.setFont(new Font("Segoe UI", Font.BOLD, 12));
         txtCodeMed.setBounds(65, 22, 120, 20);
         panel_Medico.add(txtCodeMed);
 
-        new JLabel("Especialidad:") {{ setBounds(10, 65, 90, 14); panel_Medico.add(this); }};
+        JLabel lblEsp = new JLabel("Especialidad:");
+        lblEsp.setBounds(10, 65, 90, 14);
+        panel_Medico.add(lblEsp);
         txtxEspecialidad = new JTextField();
         txtxEspecialidad.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
@@ -187,19 +207,27 @@ public class RegistrarGeneral extends JDialog {
         panel_Paciente.setLayout(null);
         panel_Paciente.setVisible(true);
 
-        new JLabel("Codigo:") {{ setBounds(10, 25, 50, 14); panel_Paciente.add(this); }};
+        JLabel lblCodPac = new JLabel("Codigo:");
+        lblCodPac.setBounds(10, 25, 50, 14);
+        panel_Paciente.add(lblCodPac);
         textCodigoPaciente = new JTextField("PAC-" + Clinica.generadorCodigoPaciente);
         textCodigoPaciente.setEnabled(false);
-        textCodigoPaciente.setBackground(SystemColor.info);
+        textCodigoPaciente.setBackground(FIXED_BG);
+        textCodigoPaciente.setForeground(FIXED_FG);
+        textCodigoPaciente.setFont(new Font("Segoe UI", Font.BOLD, 12));
         textCodigoPaciente.setBounds(66, 22, 100, 20);
         panel_Paciente.add(textCodigoPaciente);
 
-        new JLabel("Info emergencia:") {{ setBounds(10, 58, 110, 14); panel_Paciente.add(this); }};
+        JLabel lblInfo = new JLabel("Info emergencia:");
+        lblInfo.setBounds(10, 58, 110, 14);
+        panel_Paciente.add(lblInfo);
         textFieldInfoEmergencia = new JTextField();
         textFieldInfoEmergencia.setBounds(120, 55, 190, 20);
         panel_Paciente.add(textFieldInfoEmergencia);
 
-        new JLabel("Tipo Sangre:") {{ setBounds(320, 25, 90, 14); panel_Paciente.add(this); }};
+        JLabel lblSangre = new JLabel("Tipo Sangre:");
+        lblSangre.setBounds(320, 25, 90, 14);
+        panel_Paciente.add(lblSangre);
         comboTipoSangre = new JComboBox<>(TIPOS_SANGRE);
         comboTipoSangre.setBounds(415, 22, 90, 22);
         panel_Paciente.add(comboTipoSangre);
@@ -294,7 +322,6 @@ public class RegistrarGeneral extends JDialog {
         if (miPersona != null) loadPersona();
     }
 
-    // ── Selector de vivienda ──────────────────────────────────────
     private void abrirSelectorVivienda() {
         ArrayList<Vivienda> lista = Clinica.getInstance().getMisViviendas();
         if (lista.isEmpty()) {
@@ -370,8 +397,7 @@ public class RegistrarGeneral extends JDialog {
         dlg.setVisible(true);
     }
 
-    private void seleccionarFila(JTable tbl, ArrayList<Vivienda> lista,
-                                  JDialog dlg) {
+    private void seleccionarFila(JTable tbl, ArrayList<Vivienda> lista, JDialog dlg) {
         int fila = tbl.getSelectedRow();
         if (fila < 0) {
             JOptionPane.showMessageDialog(dlg,
@@ -380,13 +406,11 @@ public class RegistrarGeneral extends JDialog {
             return;
         }
         nuevaViv = lista.get(fila);
-        txtVivienda.setText(nuevaViv.getIdVivienda()
-            + " — " + nuevaViv.getDireccion());
+        txtVivienda.setText(nuevaViv.getIdVivienda() + " — " + nuevaViv.getDireccion());
         txtVivienda.setForeground(Color.BLACK);
         dlg.dispose();
     }
 
-    // ── Modo secretaria: solo puede registrar pacientes ───────────
     public void setSoloMostrarPaciente(boolean activo) {
         if (activo) {
             rdbtnMedico.setVisible(false);
@@ -396,7 +420,6 @@ public class RegistrarGeneral extends JDialog {
         }
     }
 
-    // ── Llamado desde CrearUser para médico ───────────────────────
     public void preseleccionarMedico(String idUsuario) {
         rdbtnMedico.setVisible(true);
         rdbtnMedico.setSelected(true);
@@ -425,31 +448,25 @@ public class RegistrarGeneral extends JDialog {
         textCodigoPaciente.setText("PAC-" + Clinica.generadorCodigoPaciente);
     }
 
-    // ── Carga datos al modificar ──────────────────────────────────
     public void loadPersona() {
         txtCedula.setText(miPersona.getCedula());
         txtNombre.setText(miPersona.getNombre());
-        txtTelefono.setText(miPersona.getTelefono() != null
-            ? miPersona.getTelefono() : "");
+        txtTelefono.setText(miPersona.getTelefono() != null ? miPersona.getTelefono() : "");
         comboBoxGender.setSelectedItem(miPersona.getGenero());
 
-        // Fecha nacimiento
         if (miPersona.getFechaNacimiento() != null) {
             Date fecha = Date.from(miPersona.getFechaNacimiento()
                 .atStartOfDay(ZoneId.systemDefault()).toInstant());
             dateChooser.setDate(fecha);
         }
 
-        // Vivienda
         if (miPersona.getViviend() != null) {
             nuevaViv = miPersona.getViviend();
-            txtVivienda.setText(nuevaViv.getIdVivienda()
-                + " — " + nuevaViv.getDireccion());
+            txtVivienda.setText(nuevaViv.getIdVivienda() + " — " + nuevaViv.getDireccion());
             txtVivienda.setForeground(Color.BLACK);
         }
 
         if (miPersona instanceof Paciente) {
-            // Mostrar solo Paciente bloqueado
             rdbtnPaciente.setVisible(true);
             rdbtnPaciente.setSelected(true);
             rdbtnPaciente.setEnabled(false);
@@ -458,19 +475,14 @@ public class RegistrarGeneral extends JDialog {
             panel_Medico.setVisible(false);
 
             Paciente p = (Paciente) miPersona;
-            // Poner el ID real del paciente, NO el generador
             textCodigoPaciente.setText(p.getIdPaciente());
-            textFieldInfoEmergencia.setText(
-                p.getInformacion() != null ? p.getInformacion() : "");
+            textFieldInfoEmergencia.setText(p.getInformacion() != null ? p.getInformacion() : "");
             String ts = p.getTipoSangre();
-            if (ts != null && !ts.isEmpty())
-                comboTipoSangre.setSelectedItem(ts);
-            else
-                comboTipoSangre.setSelectedIndex(0);
+            if (ts != null && !ts.isEmpty()) comboTipoSangre.setSelectedItem(ts);
+            else comboTipoSangre.setSelectedIndex(0);
         }
 
         if (miPersona instanceof Medico) {
-            // Mostrar solo Medico bloqueado
             rdbtnMedico.setVisible(true);
             rdbtnMedico.setSelected(true);
             rdbtnMedico.setEnabled(false);

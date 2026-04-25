@@ -57,11 +57,11 @@ public class ListarVivienda extends JDialog {
         listPanel.add(scrollPane, BorderLayout.CENTER);
 
         // ← Caracteres corregidos (sin símbolos rotos)
-        model = new DefaultTableModel(0, 3) {
+        model = new DefaultTableModel(0, 2) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         model.setColumnIdentifiers(
-            new String[]{"ID Vivienda", "Telefono", "Direccion"});
+            new String[]{"ID Vivienda", "Direccion"});
 
         table = new JTable(model);
         table.getTableHeader().setReorderingAllowed(false);
@@ -71,8 +71,7 @@ public class ListarVivienda extends JDialog {
             new Font("Segoe UI", Font.BOLD, 13));
         table.getTableHeader().setBackground(SystemColor.activeCaption);
         table.getColumnModel().getColumn(0).setPreferredWidth(100);
-        table.getColumnModel().getColumn(1).setPreferredWidth(120);
-        table.getColumnModel().getColumn(2).setPreferredWidth(400);
+        table.getColumnModel().getColumn(1).setPreferredWidth(550);
 
         table.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -175,7 +174,6 @@ public class ListarVivienda extends JDialog {
         for (Vivienda v : lista)
             model.addRow(new Object[]{
                 v.getIdVivienda(),
-                v.getTelefono() != null ? v.getTelefono() : "",
                 v.getDireccion()
             });
         System.out.println("Viviendas cargadas: " + lista.size());
@@ -190,7 +188,6 @@ public class ListarVivienda extends JDialog {
                     || v.getDireccion().toLowerCase().contains(texto)) {
                 model.addRow(new Object[]{
                     v.getIdVivienda(),
-                    v.getTelefono() != null ? v.getTelefono() : "",
                     v.getDireccion()
                 });
                 encontrado = true;

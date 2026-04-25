@@ -19,12 +19,11 @@ public class HacerCita extends JDialog {
     private ArrayList<Paciente> listaPacientes;
     private ArrayList<Medico>   listaMedicos;
     private Cita                citaExistente;
-    private boolean             esModificacion  = false;
-    private boolean             soloFechaHora   = false; // modo medico
+    private boolean             esModificacion = false;
+    private boolean             soloFechaHora  = false;
 
     public HacerCita() { this(null); }
 
-    // Constructor para medico — solo puede cambiar fecha y hora
     public HacerCita(Cita cita, boolean soloFechaHora) {
         this(cita);
         this.soloFechaHora = soloFechaHora;
@@ -35,13 +34,13 @@ public class HacerCita extends JDialog {
         this.esModificacion = (cita != null);
 
         setTitle(esModificacion ? "Modificar Cita Medica" : "Agendar Cita Medica");
-        setSize(520, 370);
+        setSize(520, 390);
         setLocationRelativeTo(null);
         setResizable(false);
         setModal(true);
         getContentPane().setLayout(new BorderLayout());
 
-        // Panel principal
+        // ── Panel principal ──────────────────────────────────────
         JPanel panel = new JPanel();
         panel.setBackground(new Color(240, 248, 255));
         panel.setBorder(new TitledBorder(
@@ -49,7 +48,7 @@ public class HacerCita extends JDialog {
         panel.setLayout(null);
         getContentPane().add(panel, BorderLayout.CENTER);
 
-        int lx = 20, fx = 160, fw = 310, rh = 26, gap = 42;
+        int lx = 20, fx = 170, rh = 26, gap = 44;
 
         // Codigo
         addLabel(panel, "Codigo:", lx, 30);
@@ -58,26 +57,32 @@ public class HacerCita extends JDialog {
             : "CITA-" + Clinica.generadorCodigoCita;
         JTextField txtCodigo = new JTextField(codigo);
         txtCodigo.setEnabled(false);
-        txtCodigo.setBackground(new Color(220, 220, 220));
-        txtCodigo.setBounds(fx, 28, 140, rh);
+        txtCodigo.setBackground(new Color(230, 240, 255));
+        txtCodigo.setForeground(new Color(30, 60, 120));
+        txtCodigo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        txtCodigo.setBounds(fx, 28, 130, rh);
         panel.add(txtCodigo);
 
-        // Paciente — cargado desde BD
+        // Paciente — muestra nombre + cedula + ID
         addLabel(panel, "Paciente:", lx, 30 + gap);
         cbxPacientes = new JComboBox<>();
         listaPacientes = Clinica.getInstance().getMisPaciente();
         for (Paciente p : listaPacientes)
-            cbxPacientes.addItem(p.getNombre() + " - " + p.getCedula());
-        cbxPacientes.setBounds(fx, 28 + gap, fw, rh);
+            cbxPacientes.addItem(p.getIdPaciente()
+                + " | " + p.getNombre()
+                + " | CI: " + p.getCedula());
+        cbxPacientes.setBounds(fx, 28 + gap, 310, rh);
         panel.add(cbxPacientes);
 
-        // Medico — cargado desde BD
+        // Medico — muestra nombre + cedula + ID
         addLabel(panel, "Medico:", lx, 30 + gap * 2);
         cbxMedicos = new JComboBox<>();
         listaMedicos = Clinica.getInstance().getMisMedico();
         for (Medico m : listaMedicos)
-            cbxMedicos.addItem(m.getNombre() + " (" + m.getEspecialidad() + ")");
-        cbxMedicos.setBounds(fx, 28 + gap * 2, fw, rh);
+            cbxMedicos.addItem(m.getIdMedico()
+                + " | " + m.getNombre()
+                + " | " + m.getEspecialidad());
+        cbxMedicos.setBounds(fx, 28 + gap * 2, 310, rh);
         panel.add(cbxMedicos);
 
         // Fecha
@@ -112,7 +117,6 @@ public class HacerCita extends JDialog {
 
         // Precargar si es modificacion
         if (esModificacion) {
-            // Paciente — si es null (cita vieja sin paciente) deja el primero
             if (citaExistente.getPaciente() != null) {
                 for (int i = 0; i < listaPacientes.size(); i++) {
                     if (listaPacientes.get(i).getCedula()
@@ -120,11 +124,7 @@ public class HacerCita extends JDialog {
                         cbxPacientes.setSelectedIndex(i); break;
                     }
                 }
-            } else {
-                // Sin paciente previo — mostrar nota visual
-                cbxPacientes.setSelectedIndex(0);
             }
-            // Medico — usa getDoc()
             if (citaExistente.getDoc() != null) {
                 for (int i = 0; i < listaMedicos.size(); i++) {
                     if (listaMedicos.get(i).getCedula()
@@ -133,19 +133,14 @@ public class HacerCita extends JDialog {
                     }
                 }
             }
-            // Fecha
             if (citaExistente.getFecha() != null)
                 spnFecha.setValue(citaExistente.getFecha());
-            // Hora formato "08:30 AM"
-            if (citaExistente.getHoraCita() != null
-                    && !citaExistente.getHoraCita().isEmpty()) {
-                // Formato esperado: "08:30 AM"
-                String horaStr = citaExistente.getHoraCita().trim();
-                String[] partes = horaStr.split("[: ]+");
-                if (partes.length >= 3) {
-                    cbxHora.setSelectedItem(partes[0]);
-                    cbxMinuto.setSelectedItem(partes[1]);
-                    cbxAmPm.setSelectedItem(partes[2].toUpperCase());
+            if (citaExistente.getHoraCita() != null) {
+                String[] p = citaExistente.getHoraCita().split("[:  ]+");
+                if (p.length >= 3) {
+                    cbxHora.setSelectedItem(p[0]);
+                    cbxMinuto.setSelectedItem(p[1]);
+                    cbxAmPm.setSelectedItem(p[2].toUpperCase());
                 }
             }
         }
@@ -157,7 +152,7 @@ public class HacerCita extends JDialog {
             setTitle("Modificar Fecha y Hora de Cita");
         }
 
-        // Botones
+        // ── Botones ──────────────────────────────────────────────
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         panelBotones.setBackground(new Color(200, 220, 240));
         getContentPane().add(panelBotones, BorderLayout.SOUTH);
@@ -178,7 +173,7 @@ public class HacerCita extends JDialog {
     private void addLabel(JPanel p, String txt, int x, int y) {
         JLabel lbl = new JLabel(txt);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lbl.setBounds(x, y, 130, 26);
+        lbl.setBounds(x, y, 140, 26);
         p.add(lbl);
     }
 
@@ -201,23 +196,25 @@ public class HacerCita extends JDialog {
             + ":" + cbxMinuto.getSelectedItem()
             + " " + cbxAmPm.getSelectedItem();
 
-        Cita cita = new Cita(idCita, paciente, medico, fecha);
-        cita.setHoraCita(hora);
-        cita.setCompletada(esModificacion && citaExistente.isCompletada());
+        Cita citaNueva = new Cita(idCita, paciente, medico, fecha);
+        citaNueva.setHoraCita(hora);
+        citaNueva.setCompletada(esModificacion && citaExistente.isCompletada());
 
         try {
             if (esModificacion) {
-                Clinica.getInstance().modificarCita(idCita, cita);
+                Clinica.getInstance().modificarCita(idCita, citaNueva);
                 JOptionPane.showMessageDialog(this,
                     "Cita modificada correctamente",
                     "Modificacion", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                Clinica.getInstance().agregarCita(cita);
+                Clinica.getInstance().agregarCita(citaNueva);
                 JOptionPane.showMessageDialog(this,
                     "Cita agendada:\n"
-                    + "Paciente: " + paciente.getNombre() + "\n"
-                    + "Medico:   " + medico.getNombre()   + "\n"
-                    + "Fecha:    " + fecha                + "\n"
+                    + "Paciente: " + paciente.getNombre()
+                        + " (" + paciente.getIdPaciente() + ")\n"
+                    + "Medico:   " + medico.getNombre()
+                        + " (" + medico.getIdMedico() + ")\n"
+                    + "Fecha:    " + fecha + "\n"
                     + "Hora:     " + hora,
                     "Cita Registrada", JOptionPane.INFORMATION_MESSAGE);
             }

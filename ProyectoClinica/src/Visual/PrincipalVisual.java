@@ -3,13 +3,10 @@ package Visual;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 public class PrincipalVisual extends JFrame {
 
     private JPanel contentPane;
-    public JLabel lblSepa;
     private JMenuBar menuBar;
     public JLabel lblUser;
     public JMenuItem hacerCita;
@@ -32,26 +29,13 @@ public class PrincipalVisual extends JFrame {
     public JMenuItem listadoCitas;
     public JMenuItem listadoConsultas;
     public JMenuItem historialPaciente;
+    public JMenuItem crearExamen;
+    public JMenuItem listadoExamen;
     private Dimension dim;
     public JMenuItem crearEnfermedad;
     public JMenuItem crearVivienda;
     private Logical.Usuario usuarioActual;
     private boolean modoSecretaria = false;
-
-    public static void main(String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    UIManager.setLookAndFeel(
-                        "javax.swing.plaf.nimbus.NimbusLookAndFeel");
-                    PrincipalVisual frame = new PrincipalVisual(null);
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     public PrincipalVisual(Logical.Usuario user) {
         this.usuarioActual = user;
@@ -110,7 +94,6 @@ public class PrincipalVisual extends JFrame {
         mRegistro = new JMenu("REGISTROS");
         menuBar.add(mRegistro);
 
-        // Crear Persona — en modo secretaria solo permite pacientes
         mntmNewMenuItem_9 = new JMenuItem("Crear Persona");
         mntmNewMenuItem_9.addActionListener(e -> {
             RegistrarGeneral rg = new RegistrarGeneral(null, 0);
@@ -136,6 +119,14 @@ public class PrincipalVisual extends JFrame {
         stylizeMenuItem(crearEnfermedad);
         mRegistro.add(crearEnfermedad);
 
+        crearExamen = new JMenuItem("Crear Examen");
+        crearExamen.addActionListener(e -> {
+            RegistrarExamen rex = new RegistrarExamen();
+            rex.setModal(true); rex.setVisible(true);
+        });
+        stylizeMenuItem(crearExamen);
+        mRegistro.add(crearExamen);
+
         crearVivienda = new JMenuItem("Crear Vivienda");
         crearVivienda.addActionListener(e -> {
             RegistrarVivienda vivienda = new RegistrarVivienda(null, 0);
@@ -150,7 +141,6 @@ public class PrincipalVisual extends JFrame {
 
         listaPaciente = new JMenuItem("Listado Paciente");
         listaPaciente.addActionListener(e -> {
-            // Medico: solo lectura — no puede modificar ni borrar
             boolean soloLeer = (usuarioActual != null && usuarioActual.esMedico());
             ListarPaciente lp = new ListarPaciente(soloLeer);
             lp.setModal(true); lp.setVisible(true);
@@ -158,9 +148,6 @@ public class PrincipalVisual extends JFrame {
         stylizeMenuItem(listaPaciente);
         mInvertario.add(listaPaciente);
 
-
-
-        // Listado Médico — pasa modoSecretaria para solo lectura
         listaMedico = new JMenuItem("Listado Medico");
         listaMedico.addActionListener(e -> {
             ListarMedico lm = new ListarMedico(modoSecretaria);
@@ -184,6 +171,14 @@ public class PrincipalVisual extends JFrame {
         });
         stylizeMenuItem(listadoEnfermedad);
         mInvertario.add(listadoEnfermedad);
+
+        listadoExamen = new JMenuItem("Catalogo Examenes");
+        listadoExamen.addActionListener(e -> {
+            ListarExamen lex = new ListarExamen();
+            lex.setModal(true); lex.setVisible(true);
+        });
+        stylizeMenuItem(listadoExamen);
+        mInvertario.add(listadoExamen);
 
         listaVivienda = new JMenuItem("Listado Vivienda");
         listaVivienda.addActionListener(e -> {
@@ -216,6 +211,7 @@ public class PrincipalVisual extends JFrame {
         // ── USUARIO ──────────────────────────────────────────────
         mUSER = new JMenu("USUARIO");
         menuBar.add(mUSER);
+
         crearUsuario = new JMenuItem("Crear Usuario");
         stylizeMenuItem(crearUsuario);
         crearUsuario.addActionListener(e -> {
@@ -232,27 +228,52 @@ public class PrincipalVisual extends JFrame {
         });
         mUSER.add(borrarUsuario);
 
-        // ── INFO EN BARRA ────────────────────────────────────────
-        lblSepa = new JLabel("--------------INFO-EXTRA---------------");
-        menuBar.add(lblSepa);
-        JLabel lblNewLabel = new JLabel(" USUARIO ACTIVO: - ");
-        menuBar.add(lblNewLabel);
-        String nombreLabel = (usuarioActual != null)
-            ? usuarioActual.getNombreUser() : "Invitado";
-        lblUser = new JLabel("  " + nombreLabel + "  ");
-        lblUser.setForeground(new Color(0, 153, 0));
-        menuBar.add(lblUser);
-
         // ── CONTENIDO PRINCIPAL ──────────────────────────────────
         contentPane = new JPanel();
         contentPane.setBackground(SystemColor.window);
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
+
+        // ── Barra de estado inferior — usuario activo ─────────────
+        String nombreLabel = (usuarioActual != null)
+            ? usuarioActual.getNombreUser() : "Invitado";
+        String rolLabel = (usuarioActual != null)
+            ? usuarioActual.getRol() : "";
+
+        lblUser = new JLabel(nombreLabel + " [" + rolLabel + "]");
+
+        JPanel statusBar = new JPanel(new BorderLayout());
+        statusBar.setBackground(new Color(230, 240, 255));
+        statusBar.setBorder(BorderFactory.createMatteBorder(
+            1, 0, 0, 0, new Color(180, 200, 230)));
+
+        // Panel derecho con el usuario
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 4));
+        rightPanel.setBackground(new Color(230, 240, 255));
+
+        JLabel lblIcono = new JLabel("●");
+        lblIcono.setForeground(new Color(0, 153, 0));
+        lblIcono.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        rightPanel.add(lblIcono);
+
+        JLabel lblTitulo = new JLabel("Usuario activo:");
+        lblTitulo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblTitulo.setForeground(new Color(80, 80, 80));
+        rightPanel.add(lblTitulo);
+
+        lblUser.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lblUser.setForeground(new Color(0, 100, 180));
+        rightPanel.add(lblUser);
+
+        statusBar.add(rightPanel, BorderLayout.EAST);
+        contentPane.add(statusBar, BorderLayout.SOUTH);
+
         JPanel panel = new JPanel();
         panel.setBackground(SystemColor.window);
         contentPane.add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
+
         try {
             JLabel lblImagen = new JLabel("");
             lblImagen.setIcon(new ImageIcon(
@@ -264,11 +285,6 @@ public class PrincipalVisual extends JFrame {
         }
     }
 
-    /**
-     * Activa el modo secretaria:
-     * - ListarMedico abre en solo lectura
-     * - RegistrarGeneral solo muestra opción Paciente
-     */
     public void setModoSecretaria(boolean activo) {
         this.modoSecretaria = activo;
     }

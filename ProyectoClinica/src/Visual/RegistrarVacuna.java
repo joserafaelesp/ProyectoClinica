@@ -28,12 +28,10 @@ public class RegistrarVacuna extends JDialog {
     private Vacuna       miVacuna;
     private boolean      esModificacion = false;
 
-    // ── Constructor para REGISTRAR (nuevo) ───────────────────────
     public RegistrarVacuna() {
         this(null, 0);
     }
 
-    // ── Constructor para MODIFICAR (desde ListarVacuna) ──────────
     public RegistrarVacuna(Vacuna vacuna, int index) {
         miVacuna       = vacuna;
         esModificacion = (vacuna != null);
@@ -51,20 +49,18 @@ public class RegistrarVacuna extends JDialog {
         contentPanel.add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
-        // ── ID ───────────────────────────────────────────────────
         JLabel lblId = new JLabel("ID:");
         lblId.setBounds(30, 26, 46, 14);
         panel.add(lblId);
 
-        txtIdVacuna = new JTextField(
-            "VAC-" + Clinica.generadorCodigoVacuna);
+        // ✅ Formato VAC-N
+        txtIdVacuna = new JTextField("VAC-" + Clinica.generadorCodigoVacuna);
         txtIdVacuna.setEditable(false);
         txtIdVacuna.setEnabled(false);
         txtIdVacuna.setBackground(SystemColor.info);
         txtIdVacuna.setBounds(94, 23, 120, 20);
         panel.add(txtIdVacuna);
 
-        // ── Nombre ───────────────────────────────────────────────
         JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setBounds(30, 65, 54, 14);
         panel.add(lblNombre);
@@ -73,7 +69,6 @@ public class RegistrarVacuna extends JDialog {
         txtNombreVacuna.setBounds(94, 62, 200, 20);
         panel.add(txtNombreVacuna);
 
-        // ── Descripción ──────────────────────────────────────────
         JLabel lblDesc = new JLabel("Descripcion:");
         lblDesc.setBounds(30, 105, 80, 14);
         panel.add(lblDesc);
@@ -82,7 +77,6 @@ public class RegistrarVacuna extends JDialog {
         txtDescripcion.setBounds(115, 102, 300, 80);
         panel.add(txtDescripcion);
 
-        // ── Botones ──────────────────────────────────────────────
         JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
@@ -100,7 +94,6 @@ public class RegistrarVacuna extends JDialog {
                 }
 
                 if (!esModificacion) {
-                    // ── REGISTRAR ────────────────────────────────
                     Vacuna nueva = new Vacuna(
                         txtIdVacuna.getText(), nombre, descripcion);
                     Clinica.getInstance().agregarVacuna(nueva);
@@ -109,7 +102,6 @@ public class RegistrarVacuna extends JDialog {
                         "Vacuna registrada correctamente",
                         "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    // ── ACTUALIZAR ───────────────────────────────
                     miVacuna.setNombreVacuna(nombre);
                     miVacuna.setDescripcion(descripcion);
                     Clinica.getInstance().modificarVacuna(
@@ -129,13 +121,13 @@ public class RegistrarVacuna extends JDialog {
         cancelButton.addActionListener(e -> dispose());
         buttonPane.add(cancelButton);
 
-        // Cargar datos si es modificación
         if (miVacuna != null) loadVacuna();
     }
 
     public void clean() {
-        Clinica.generadorCodigoVacuna++;
-        txtIdVacuna.setText("VAC" + Clinica.generadorCodigoVacuna);
+        // No incrementar aqui — agregarVacuna() ya lo hizo
+        // ✅ Formato VAC-N
+        txtIdVacuna.setText("VAC-" + Clinica.generadorCodigoVacuna);
         txtNombreVacuna.setText("");
         txtDescripcion.setText("");
     }
@@ -144,7 +136,6 @@ public class RegistrarVacuna extends JDialog {
         txtIdVacuna.setText(miVacuna.getIdVacuna());
         txtNombreVacuna.setText(miVacuna.getNombreVacuna());
         txtDescripcion.setText(
-            miVacuna.getDescripcion() != null
-                ? miVacuna.getDescripcion() : "");
+            miVacuna.getDescripcion() != null ? miVacuna.getDescripcion() : "");
     }
 }
