@@ -1,10 +1,13 @@
 package Visual;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -19,164 +22,218 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
+import Logical.Consultas;
 import Logical.Enfermedad;
 import Logical.Paciente;
-
-import java.awt.Color;
+import Logical.Vacuna;
 
 public class ReportePaciente extends JDialog {
 
     private final JPanel contentPanel = new JPanel();
     private JTextField txtNombre;
     private JTextField txtIdPaciente;
-    private JTextArea txtDescripcion;
+    private JTextArea  txtDescripcion;
     private JTextField txtCedula;
-    private JTable tableEnfermedades;
-    private static DefaultTableModel model;
-    private Paciente pacienteActual = null;
-
-    public static void main(String[] args) {
-        try {
-            ReportePaciente dialog = new ReportePaciente();
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    private JTable     tableEnfermedades;
+    private DefaultTableModel model;  // FIX: ya no es static
+    private Paciente   pacienteActual = null;
 
     public ReportePaciente() {
         setTitle("Reporte de Paciente");
-        setBounds(100, 100, 705, 600);
+        setBounds(100, 100, 750, 650);
         getContentPane().setLayout(new BorderLayout());
         contentPanel.setBackground(new Color(224, 255, 255));
         contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         getContentPane().add(contentPanel, BorderLayout.CENTER);
         contentPanel.setLayout(null);
 
-        JLabel lblNewLabel = new JLabel("Nombre:");
-        lblNewLabel.setBounds(10, 65, 54, 14);
-        contentPanel.add(lblNewLabel);
+        // ── Busqueda por ID ──────────────────────────────────────
+        JLabel lblIdPaciente = new JLabel("ID Paciente:");
+        lblIdPaciente.setBounds(10, 26, 80, 14);
+        contentPanel.add(lblIdPaciente);
+
+        txtIdPaciente = new JTextField();
+        txtIdPaciente.setBounds(95, 23, 150, 20);
+        contentPanel.add(txtIdPaciente);
+
+        JButton btnBuscar = new JButton("Buscar");
+        btnBuscar.addActionListener(e -> buscarPaciente());
+        btnBuscar.setBounds(255, 23, 80, 20);
+        contentPanel.add(btnBuscar);
+
+        // ── Datos del paciente ───────────────────────────────────
+        JLabel lblNombre = new JLabel("Nombre:");
+        lblNombre.setBounds(10, 58, 80, 14);
+        contentPanel.add(lblNombre);
 
         txtNombre = new JTextField();
         txtNombre.setEditable(false);
         txtNombre.setEnabled(false);
-        txtNombre.setBounds(74, 62, 166, 20);
+        txtNombre.setBounds(95, 55, 200, 20);
         contentPanel.add(txtNombre);
-        txtNombre.setColumns(10);
-
-        JLabel lblNewLabel_1 = new JLabel("ID Paciente:");
-        lblNewLabel_1.setBounds(10, 26, 70, 14);
-        contentPanel.add(lblNewLabel_1);
-
-        txtIdPaciente = new JTextField();
-        txtIdPaciente.setBounds(90, 23, 150, 20);
-        contentPanel.add(txtIdPaciente);
-        txtIdPaciente.setColumns(10);
-
-        JButton btnBuscar = new JButton("Buscar");
-        btnBuscar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                buscarPaciente();
-            }
-        });
-        btnBuscar.setBounds(250, 23, 80, 20);
-        contentPanel.add(btnBuscar);
-
-        JLabel lblNewLabel_4 = new JLabel("Descripcion de Paciente:");
-        lblNewLabel_4.setBounds(10, 120, 147, 14);
-        contentPanel.add(lblNewLabel_4);
-
-        JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(10, 145, 400, 150);
-        contentPanel.add(scrollPane);
-
-        txtDescripcion = new JTextArea();
-        scrollPane.setViewportView(txtDescripcion);
-        txtDescripcion.setLineWrap(true);
-        txtDescripcion.setWrapStyleWord(true);
-        txtDescripcion.setEditable(false);
 
         JLabel lblCedula = new JLabel("Cedula:");
-        lblCedula.setBounds(10, 95, 46, 14);
+        lblCedula.setBounds(10, 88, 60, 14);
         contentPanel.add(lblCedula);
 
         txtCedula = new JTextField();
         txtCedula.setEditable(false);
         txtCedula.setEnabled(false);
-        txtCedula.setBounds(74, 92, 166, 20);
+        txtCedula.setBounds(95, 85, 200, 20);
         contentPanel.add(txtCedula);
-        txtCedula.setColumns(10);
 
-        JLabel lblEnfermedades = new JLabel("Enfermedades registradas:");
-        lblEnfermedades.setBounds(10, 310, 200, 14);
+        // ── Descripcion general ──────────────────────────────────
+        JLabel lblDesc = new JLabel("Informacion del Paciente:");
+        lblDesc.setBounds(10, 118, 160, 14);
+        contentPanel.add(lblDesc);
+
+        JScrollPane scrollDesc = new JScrollPane();
+        scrollDesc.setBounds(10, 136, 710, 90);
+        contentPanel.add(scrollDesc);
+
+        txtDescripcion = new JTextArea();
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
+        txtDescripcion.setEditable(false);
+        txtDescripcion.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtDescripcion.setMargin(new Insets(5, 8, 5, 8));
+        scrollDesc.setViewportView(txtDescripcion);
+
+        // ── Tabla de enfermedades diagnosticadas al paciente ─────
+        // FIX: antes mostraba el catalogo completo de enfermedades del sistema.
+        // Ahora solo muestra las enfermedades diagnosticadas al paciente buscado.
+        JLabel lblEnfermedades = new JLabel("Enfermedades diagnosticadas al paciente:");
+        lblEnfermedades.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblEnfermedades.setBounds(10, 240, 300, 14);
         contentPanel.add(lblEnfermedades);
 
-        JScrollPane scrollPaneEnfermedades = new JScrollPane();
-        scrollPaneEnfermedades.setBounds(10, 335, 669, 180);
-        contentPanel.add(scrollPaneEnfermedades);
-
-        String headersEnfermedades[] = {"C�digo", "Nombre", "S�ntomas"};
-        model = new DefaultTableModel();
+        // FIX: tildes y caracteres especiales corregidos (eran C?digo, S?ntomas)
+        String[] headersEnfermedades = {"Codigo", "Nombre", "Sintomas", "Gravedad"};
+        model = new DefaultTableModel() {
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
         model.setColumnIdentifiers(headersEnfermedades);
 
-        tableEnfermedades = new JTable();
+        tableEnfermedades = new JTable(model);
         tableEnfermedades.getTableHeader().setReorderingAllowed(false);
-        tableEnfermedades.setModel(model);
-        scrollPaneEnfermedades.setViewportView(tableEnfermedades);
+        tableEnfermedades.setRowHeight(22);
 
-        JPanel buttonPane = new JPanel();
-        buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        JScrollPane scrollEnf = new JScrollPane(tableEnfermedades);
+        scrollEnf.setBounds(10, 260, 710, 120);
+        contentPanel.add(scrollEnf);
+
+        // ── Tabla de consultas del paciente ──────────────────────
+        // NUEVO: muestra el historial de consultas del paciente
+        JLabel lblConsultas = new JLabel("Historial de consultas:");
+        lblConsultas.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblConsultas.setBounds(10, 392, 200, 14);
+        contentPanel.add(lblConsultas);
+
+        String[] headersConsultas = {"ID Consulta", "Fecha", "Medico", "Diagnostico"};
+        DefaultTableModel modelConsultas = new DefaultTableModel() {
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+        modelConsultas.setColumnIdentifiers(headersConsultas);
+
+        JTable tableConsultas = new JTable(modelConsultas);
+        tableConsultas.getTableHeader().setReorderingAllowed(false);
+        tableConsultas.setRowHeight(22);
+
+        JScrollPane scrollCon = new JScrollPane(tableConsultas);
+        scrollCon.setBounds(10, 412, 710, 130);
+        contentPanel.add(scrollCon);
+
+        // ── Actualizar tablas al buscar paciente ─────────────────
+        // Se inyectan las referencias para que buscarPaciente() las actualice
+        this.tablaConsultasModel = modelConsultas;
+
+        // ── Boton cerrar ─────────────────────────────────────────
+        JPanel buttonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         getContentPane().add(buttonPane, BorderLayout.SOUTH);
-
         JButton cancelButton = new JButton("Salir");
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                dispose();
-            }
-        });
+        cancelButton.addActionListener(e -> dispose());
         buttonPane.add(cancelButton);
-        
-        cargarEnfermedades();
     }
+
+    // Referencia al modelo de consultas para actualizarlo desde buscarPaciente()
+    private DefaultTableModel tablaConsultasModel;
 
     private void buscarPaciente() {
         String idPaciente = txtIdPaciente.getText().trim();
         if (idPaciente.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Ingrese un ID de paciente", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                "Ingrese un ID de paciente", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         pacienteActual = Clinica.getInstance().obtenerPacienteById(idPaciente);
-        if (pacienteActual != null) {
-            txtNombre.setText(pacienteActual.getNombre());
-            txtCedula.setText(pacienteActual.getCedula());
-            
-            StringBuilder sb = new StringBuilder();
-            sb.append("Nombre: ").append(pacienteActual.getNombre()).append("\n");
-            sb.append("C�dula: ").append(pacienteActual.getCedula()).append("\n");
-            sb.append("Tel�fono: ").append(pacienteActual.getTelefono()).append("\n");
-            sb.append("G�nero: ").append(pacienteActual.getGenero()).append("\n");
-            sb.append("Info Emergencia: ").append(pacienteActual.getInfoEmergencia()).append("\n");
-            if (pacienteActual.getViviend() != null) {
-                sb.append("Vivienda: ").append(pacienteActual.getViviend().getDireccion());
-            }
-            txtDescripcion.setText(sb.toString());
-            
-            JOptionPane.showMessageDialog(null, "Paciente encontrado", "�xito", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(null, "Paciente no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
-            txtNombre.setText("");
-            txtCedula.setText("");
-            txtDescripcion.setText("");
+        if (pacienteActual == null) {
+            JOptionPane.showMessageDialog(this,
+                "Paciente no encontrado", "Error", JOptionPane.ERROR_MESSAGE);
+            limpiarCampos();
+            return;
         }
+
+        // ── Datos generales ──────────────────────────────────────
+        txtNombre.setText(pacienteActual.getNombre());
+        txtCedula.setText(pacienteActual.getCedula());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Nombre:          ").append(pacienteActual.getNombre()).append("\n");
+        sb.append("Cedula:          ").append(pacienteActual.getCedula()).append("\n");
+        sb.append("Telefono:        ").append(nullSafe(pacienteActual.getTelefono())).append("\n");
+        sb.append("Genero:          ").append(nullSafe(pacienteActual.getGenero())).append("\n");
+        sb.append("Tipo de Sangre:  ").append(nullSafe(pacienteActual.getTipoSangre())).append("\n");
+        sb.append("Info Emergencia: ").append(nullSafe(pacienteActual.getInfoEmergencia())).append("\n");
+        if (pacienteActual.getViviend() != null)
+            sb.append("Vivienda:        ").append(pacienteActual.getViviend().getDireccion());
+        txtDescripcion.setText(sb.toString());
+
+        // ── FIX: enfermedades diagnosticadas AL PACIENTE ─────────
+        // Se obtienen via las consultas del paciente → CONSULTA_ENFERMEDAD
+        model.setRowCount(0);
+        List<Enfermedad> enfsDelPaciente =
+            Clinica.getInstance().obtenerEnfermedadesDePaciente(pacienteActual.getCedula());
+        for (Enfermedad enf : enfsDelPaciente) {
+            String gravedad = (enf.getGravedad() != null)
+                ? enf.getGravedad().getGravedad() : "—";
+            model.addRow(new Object[]{
+                enf.getIdEnfermedad(),
+                enf.getNombreEnfermedad(),
+                nullSafe(enf.getSintomas()),
+                gravedad
+            });
+        }
+
+        // ── NUEVO: historial de consultas del paciente ───────────
+        tablaConsultasModel.setRowCount(0);
+        List<Consultas> consultas =
+            Clinica.getInstance().getMisConsultasDelPaciente(pacienteActual.getCedula());
+        for (Consultas c : consultas) {
+            String nombreMedico = (c.getDoctor() != null) ? c.getDoctor().getNombre() : "—";
+            tablaConsultasModel.addRow(new Object[]{
+                c.getIdConsulta(),
+                c.getFechaConsulta(),
+                nombreMedico,
+                nullSafe(c.getDiagnostico())
+            });
+        }
+
+        if (enfsDelPaciente.isEmpty() && consultas.isEmpty())
+            JOptionPane.showMessageDialog(this,
+                "Paciente encontrado. Aun no tiene consultas registradas.",
+                "Informacion", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void cargarEnfermedades() {
-        ArrayList<Enfermedad> listaEnf = Clinica.getInstance().getMisEnfermedades();
+    private void limpiarCampos() {
+        txtNombre.setText("");
+        txtCedula.setText("");
+        txtDescripcion.setText("");
         model.setRowCount(0);
-        for (Enfermedad enfermedad : listaEnf) {
-            model.addRow(new Object[]{enfermedad.getIdEnfermedad(), enfermedad.getNombreEnfermedad(), enfermedad.getSintomas()});
-        }
+        if (tablaConsultasModel != null) tablaConsultasModel.setRowCount(0);
+    }
+
+    private String nullSafe(String valor) {
+        return (valor != null && !valor.trim().isEmpty()) ? valor : "—";
     }
 }

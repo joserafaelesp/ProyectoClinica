@@ -19,6 +19,7 @@ public class PrincipalVisual extends JFrame {
     public JMenu mInvertario;
     public JMenu mConsultas;
     public JMenu mCitas;
+    public JMenu mInformes;          // ← NUEVO
     public JMenuItem crearUsuario;
     public JMenuItem borrarUsuario;
     public JMenuItem listaPaciente;
@@ -208,6 +209,17 @@ public class PrincipalVisual extends JFrame {
         stylizeMenuItem(historialPaciente);
         mUtilidades.add(historialPaciente);
 
+        // ── INFORMES (solo Admin) ────────────────────────────────
+        mInformes = new JMenu("INFORMES");
+        menuBar.add(mInformes);
+        JMenuItem mntmInformes = new JMenuItem("Ver Informes");
+        mntmInformes.addActionListener(e -> {
+            MenuInformes mi = new MenuInformes();
+            mi.setVisible(true);
+        });
+        stylizeMenuItem(mntmInformes);
+        mInformes.add(mntmInformes);
+
         // ── USUARIO ──────────────────────────────────────────────
         mUSER = new JMenu("USUARIO");
         menuBar.add(mUSER);
@@ -248,7 +260,6 @@ public class PrincipalVisual extends JFrame {
         statusBar.setBorder(BorderFactory.createMatteBorder(
             1, 0, 0, 0, new Color(180, 200, 230)));
 
-        // Panel derecho con el usuario
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 4));
         rightPanel.setBackground(new Color(230, 240, 255));
 

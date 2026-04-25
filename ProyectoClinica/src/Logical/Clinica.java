@@ -151,4 +151,26 @@ public class Clinica {
     public List<Enfermedad> getEnfermedadesDiagnosticadas() {
         return consultaDAO.listarEnfermedadesDiagnosticadas();
     }
+ // ── Agrega estos dos métodos al final de la sección CONSULTA en Clinica.java ──
+
+ // Devuelve todas las consultas de un paciente por su cédula
+ public ArrayList<Consultas> getMisConsultasDelPaciente(String cedula) {
+     return consultaDAO.listarPorPaciente(cedula);
+ }
+
+ // Devuelve todas las enfermedades diagnosticadas a un paciente (via sus consultas)
+ public List<Enfermedad> obtenerEnfermedadesDePaciente(String cedula) {
+     List<Enfermedad> todas = new ArrayList<>();
+     ArrayList<Consultas> consultas = consultaDAO.listarPorPaciente(cedula);
+     for (Consultas c : consultas) {
+         List<Enfermedad> enfs = consultaDAO.leerEnfermedades(c.getIdConsulta());
+         for (Enfermedad e : enfs) {
+             // Evitar duplicados por si la misma enfermedad aparece en varias consultas
+             boolean existe = todas.stream()
+                 .anyMatch(ex -> ex.getIdEnfermedad().equals(e.getIdEnfermedad()));
+             if (!existe) todas.add(e);
+         }
+     }
+     return todas;
+ }
 }

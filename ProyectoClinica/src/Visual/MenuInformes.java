@@ -10,120 +10,127 @@ import Logical.*;
 
 public class MenuInformes extends JDialog {
 
-    private static final Color BG        = new Color(245, 248, 252);
-    private static final Color ACCENT    = new Color(70, 130, 180);
-    private static final Color ACCENT2   = new Color(60, 160, 80);
-    private static final Color ACCENT3   = new Color(160, 80, 180);
-    private static final Color ACCENT4   = new Color(200, 100, 50);
-    private static final Color FIXED_BG  = new Color(230, 240, 255);
-    private static final Color FIXED_FG  = new Color(30, 60, 120);
+    private static final Color BG       = new Color(245, 248, 252);
+    private static final Color ACCENT   = new Color(70, 130, 180);
+    private static final Color ACCENT2  = new Color(60, 160, 80);
+    private static final Color ACCENT3  = new Color(160, 80, 180);
+    private static final Color ACCENT4  = new Color(200, 100, 50);
+    private static final Color FIXED_BG = new Color(230, 240, 255);
 
     private final InformesDAO dao = new InformesDAO();
 
     public MenuInformes() {
-        setTitle("Informes y Estadisticas — Clinica SAM");
+        setTitle("Informes — Clinica S.R.L");
         setBounds(100, 100, 900, 640);
         setResizable(false);
         setModal(true);
         getContentPane().setLayout(new BorderLayout());
 
-        // ── Encabezado ───────────────────────────────────────────
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(ACCENT);
-        header.setBorder(new EmptyBorder(14, 20, 14, 20));
+        // ── Encabezado rediseñado ─────────────────────────────────
+        // Una sola franja con icono + título + subtítulo apilados
+        JPanel header = new JPanel(new BorderLayout(16, 0));
+        header.setBackground(new Color(40, 90, 140));
+        header.setBorder(new EmptyBorder(16, 24, 16, 24));
 
-        JLabel lblTitulo = new JLabel("  Informes y Estadisticas");
+        // Icono decorativo izquierda
+        JLabel lblIcono = new JLabel("");
+        lblIcono.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        lblIcono.setForeground(Color.WHITE);
+        header.add(lblIcono, BorderLayout.WEST);
+
+        // Título + subtítulo apilados en el centro
+        JPanel pnlTexto = new JPanel();
+        pnlTexto.setOpaque(false);
+        pnlTexto.setLayout(new BoxLayout(pnlTexto, BoxLayout.Y_AXIS));
+
+        JLabel lblTitulo = new JLabel("Panel de Informes y Estadisticas");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitulo.setForeground(Color.WHITE);
-        header.add(lblTitulo, BorderLayout.WEST);
+        pnlTexto.add(lblTitulo);
 
-        JLabel lblSub = new JLabel("Clinica SAM — Panel de Administrador  ");
-        lblSub.setFont(new Font("Segoe UI", Font.ITALIC, 13));
-        lblSub.setForeground(new Color(200, 220, 255));
-        header.add(lblSub, BorderLayout.EAST);
+        JLabel lblSub = new JLabel("Clinica S.R.L  •  Solo visible para Administrador");
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblSub.setForeground(new Color(180, 210, 240));
+        pnlTexto.add(lblSub);
+
+        header.add(pnlTexto, BorderLayout.CENTER);
         getContentPane().add(header, BorderLayout.NORTH);
 
-        // ── Panel central con 4 botones ───────────────────────────
+        // ── Panel central con 4 tarjetas ─────────────────────────
         JPanel center = new JPanel(new GridLayout(2, 2, 15, 15));
         center.setBackground(BG);
         center.setBorder(new EmptyBorder(20, 20, 10, 20));
         getContentPane().add(center, BorderLayout.CENTER);
 
-        // Botón 1 — Reporte de Paciente
-        center.add(crearBotonInforme(
-            "1. Reporte de Paciente",
-            "Historial clínico completo:\nconsultas, diagnósticos,\nenfermedades, vacunas y exámenes.",
-            ACCENT,
-            e -> abrirReportePaciente()
+        center.add(crearTarjeta(
+            "Reporte de Paciente",
+            "Historial clinico completo:\nconsultas, diagnosticos,\nenfermedades, vacunas y examenes.",
+            ACCENT, e -> abrirReportePaciente()
+        ));
+        center.add(crearTarjeta(
+            "Consultas por Fechas",
+            "Total de consultas realizadas\nentre dos fechas, agrupadas\npor medico.",
+            ACCENT2, e -> abrirConsultasPorFecha()
+        ));
+        center.add(crearTarjeta(
+            "Medico mas Activo",
+            "Ranking de medicos segun\nnumero de consultas realizadas\ny pacientes atendidos.",
+            ACCENT3, e -> abrirMedicosMasActivos()
+        ));
+        center.add(crearTarjeta(
+            "Enfermedades Frecuentes",
+            "Ranking de enfermedades mas\ndiagnosticadas en el sistema\ncon su nivel de gravedad.",
+            ACCENT4, e -> abrirEnfermedades()
         ));
 
-        // Botón 2 — Consultas por Rango de Fechas
-        center.add(crearBotonInforme(
-            "2. Consultas por Fechas",
-            "Total de consultas realizadas\nentre dos fechas, agrupadas\npor médico.",
-            ACCENT2,
-            e -> abrirConsultasPorFecha()
-        ));
-
-        // Botón 3 — Médico más Activo
-        center.add(crearBotonInforme(
-            "3. Medico mas Activo",
-            "Ranking de médicos según\nnúmero de consultas realizadas\ny pacientes atendidos.",
-            ACCENT3,
-            e -> abrirMedicosMasActivos()
-        ));
-
-        // Botón 4 — Enfermedades más Diagnosticadas
-        center.add(crearBotonInforme(
-            "4. Enfermedades Frecuentes",
-            "Ranking de enfermedades más\ndiagnosticadas en el sistema\ncon su nivel de gravedad.",
-            ACCENT4,
-            e -> abrirEnfermedades()
-        ));
-
-        // ── Botón cerrar ──────────────────────────────────────────
+        // ── Barra inferior ────────────────────────────────────────
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        bottom.setBackground(new Color(200, 220, 240));
+        bottom.setBackground(new Color(215, 228, 242));
+        bottom.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(180, 200, 225)));
         JButton btnCerrar = new JButton("Cerrar");
         btnCerrar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnCerrar.setFocusPainted(false);
         btnCerrar.addActionListener(e -> dispose());
         bottom.add(btnCerrar);
         getContentPane().add(bottom, BorderLayout.SOUTH);
     }
 
-    // ── Fabrica de botones ────────────────────────────────────────
-    private JPanel crearBotonInforme(String titulo, String descripcion,
-                                      Color color, ActionListener accion) {
-        JPanel card = new JPanel(new BorderLayout(0, 8));
+    // ── Fábrica de tarjetas ───────────────────────────────────────
+    private JPanel crearTarjeta(String titulo, String descripcion,
+                                 Color color, ActionListener accion) {
+        JPanel card = new JPanel(new BorderLayout(0, 10));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(color, 2, true),
-            new EmptyBorder(15, 18, 15, 18)));
+            new EmptyBorder(16, 18, 16, 18)));
 
+        // Título con icono integrado
         JLabel lblTit = new JLabel(titulo);
-        lblTit.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblTit.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTit.setForeground(color);
         card.add(lblTit, BorderLayout.NORTH);
 
-        JLabel lblDesc = new JLabel("<html>" + descripcion.replace("\n", "<br>") + "</html>");
+        // Descripción
+        JLabel lblDesc = new JLabel(
+            "<html><body style='width:160px'>"
+            + descripcion.replace("\n", "<br>")
+            + "</body></html>");
         lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblDesc.setForeground(new Color(80, 80, 80));
+        lblDesc.setForeground(new Color(90, 90, 90));
         card.add(lblDesc, BorderLayout.CENTER);
 
-        JButton btn = new JButton("Ver Informe →");
+        // Botón
+        JButton btn = new JButton("Ver Informe \u2192");
         btn.setBackground(color);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setBorderPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addActionListener(accion);
         btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(color.darker());
-            }
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(color);
-            }
+            public void mouseEntered(MouseEvent e) { btn.setBackground(color.darker()); }
+            public void mouseExited(MouseEvent e)  { btn.setBackground(color); }
         });
         card.add(btn, BorderLayout.SOUTH);
         return card;
@@ -132,20 +139,17 @@ public class MenuInformes extends JDialog {
     // ── Informe 1: Reporte de Paciente ────────────────────────────
     private void abrirReportePaciente() {
         JDialog dlg = new JDialog(this, "Reporte de Paciente", true);
-        dlg.setSize(750, 600);
+        dlg.setSize(750, 620);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
-        // Busqueda
         JPanel pnlBuscar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         pnlBuscar.setBackground(FIXED_BG);
         pnlBuscar.setBorder(new EmptyBorder(5, 10, 5, 10));
-
         pnlBuscar.add(new JLabel("Buscar paciente:") {{
             setFont(new Font("Segoe UI", Font.BOLD, 13));
         }});
 
-        // Combo con pacientes
         JComboBox<String> cbxPacientes = new JComboBox<>();
         ArrayList<Paciente> listaPac = Clinica.getInstance().getMisPaciente();
         for (Paciente p : listaPac)
@@ -162,7 +166,6 @@ public class MenuInformes extends JDialog {
         pnlBuscar.add(btnBuscar);
         dlg.add(pnlBuscar, BorderLayout.NORTH);
 
-        // Area de reporte
         JTextArea txtReporte = new JTextArea();
         txtReporte.setFont(new Font("Courier New", Font.PLAIN, 12));
         txtReporte.setEditable(false);
@@ -176,25 +179,63 @@ public class MenuInformes extends JDialog {
             if (idx < 0 || listaPac.isEmpty()) return;
             Paciente pac = listaPac.get(idx);
             String cedula = pac.getCedula();
-            String sep = "══════════════════════════════════════════\n";
-            String reporte = sep
-                + "   REPORTE MÉDICO — CLÍNICA SAM\n"
-                + sep
-                + "DATOS PERSONALES\n"
-                + "──────────────────────────────────────────\n"
-                + dao.reportePaciente(cedula) + "\n"
-                + sep
-                + "Generado por el sistema de Clínica SAM\n"
-                + sep;
-            txtReporte.setText(reporte);
+            String sep = "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+                       + "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+                       + "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n";
+
+            StringBuilder reporte = new StringBuilder();
+            reporte.append(sep);
+            reporte.append("   REPORTE MEDICO \u2014 CLINICA S.R.L\n");
+            reporte.append(sep);
+            reporte.append("Paciente : ").append(pac.getNombre()).append("\n");
+            reporte.append("Cedula   : ").append(pac.getCedula()).append("\n");
+            reporte.append("ID       : ").append(pac.getIdPaciente()).append("\n");
+            reporte.append("Telefono : ").append(nullSafe(pac.getTelefono())).append("\n");
+            reporte.append("Genero   : ").append(nullSafe(pac.getGenero())).append("\n");
+            if (pac.getViviend() != null)
+                reporte.append("Direccion: ").append(pac.getViviend().getDireccion()).append("\n");
+            reporte.append(sep);
+
+            java.util.List<Consultas> consultas =
+                Clinica.getInstance().getMisConsultasDelPaciente(cedula);
+            reporte.append("HISTORIAL DE CONSULTAS (").append(consultas.size()).append(")\n");
+            reporte.append(sep);
+            if (consultas.isEmpty()) {
+                reporte.append("  Sin consultas registradas.\n");
+            } else {
+                for (Consultas c : consultas) {
+                    reporte.append("  Consulta    : ").append(c.getIdConsulta()).append("\n");
+                    reporte.append("  Fecha       : ").append(c.getFechaConsulta()).append("\n");
+                    reporte.append("  Medico      : ")
+                        .append(c.getDoctor() != null ? c.getDoctor().getNombre() : "\u2014").append("\n");
+                    reporte.append("  Diagnostico : ").append(nullSafe(c.getDiagnostico())).append("\n");
+                    reporte.append("  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n");
+                }
+            }
+
+            java.util.List<Enfermedad> enfs =
+                Clinica.getInstance().obtenerEnfermedadesDePaciente(cedula);
+            reporte.append("\nENFERMEDADES DIAGNOSTICADAS (").append(enfs.size()).append(")\n");
+            reporte.append(sep);
+            if (enfs.isEmpty()) {
+                reporte.append("  Ninguna registrada.\n");
+            } else {
+                for (Enfermedad enf : enfs) {
+                    reporte.append("  \u2022 ").append(enf.getNombreEnfermedad());
+                    if (enf.getGravedad() != null)
+                        reporte.append(" [").append(enf.getGravedad().getGravedad()).append("]");
+                    reporte.append("\n");
+                }
+            }
+            reporte.append(sep);
+            txtReporte.setText(reporte.toString());
             txtReporte.setCaretPosition(0);
         });
 
-        // Botones inferiores
-        JPanel pnlBot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
+        JPanel pnlBot = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         pnlBot.setBackground(new Color(200, 220, 240));
         JButton btnCerrar = new JButton("Cerrar");
-        btnCerrar.addActionListener(e -> dlg.dispose());
+        btnCerrar.addActionListener(e2 -> dlg.dispose());
         pnlBot.add(btnCerrar);
         dlg.add(pnlBot, BorderLayout.SOUTH);
         dlg.setVisible(true);
@@ -203,24 +244,21 @@ public class MenuInformes extends JDialog {
     // ── Informe 2: Consultas por Rango de Fechas ─────────────────
     private void abrirConsultasPorFecha() {
         JDialog dlg = new JDialog(this, "Consultas por Rango de Fechas", true);
-        dlg.setSize(750, 500);
+        dlg.setSize(750, 480);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
         JPanel pnlTop = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        pnlTop.setBackground(FIXED_BG);
-        pnlTop.setBorder(new EmptyBorder(5, 10, 5, 10));
-
+        pnlTop.setBackground(new Color(220, 245, 220));
+        pnlTop.setBorder(new EmptyBorder(5, 15, 5, 15));
         pnlTop.add(new JLabel("Desde:") {{ setFont(new Font("Segoe UI", Font.BOLD, 13)); }});
-        JTextField txtDesde = new JTextField("2026-01-01");
+        JTextField txtDesde = new JTextField("2024-01-01");
         txtDesde.setPreferredSize(new Dimension(110, 28));
         pnlTop.add(txtDesde);
-
         pnlTop.add(new JLabel("Hasta:") {{ setFont(new Font("Segoe UI", Font.BOLD, 13)); }});
         JTextField txtHasta = new JTextField("2026-12-31");
         txtHasta.setPreferredSize(new Dimension(110, 28));
         pnlTop.add(txtHasta);
-
         JButton btnBuscar = new JButton("Generar");
         btnBuscar.setBackground(ACCENT2);
         btnBuscar.setForeground(Color.WHITE);
@@ -243,11 +281,9 @@ public class MenuInformes extends JDialog {
         tabla.getTableHeader().setForeground(Color.WHITE);
         dlg.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Resumen
         JLabel lblResumen = new JLabel("  Total de consultas: -");
         lblResumen.setFont(new Font("Segoe UI", Font.BOLD, 13));
         lblResumen.setForeground(ACCENT2);
-
         JPanel pnlBot = new JPanel(new BorderLayout());
         pnlBot.setBackground(new Color(200, 220, 240));
         pnlBot.setBorder(new EmptyBorder(5, 10, 5, 10));
@@ -267,22 +303,20 @@ public class MenuInformes extends JDialog {
             int total = 0;
             for (String[] row : datos) {
                 model.addRow(row);
-                total += Integer.parseInt(row[2]);
+                try { total += Integer.parseInt(row[2]); } catch (NumberFormatException ex) {}
             }
-            lblResumen.setText("  Total de consultas en el período: " + total
-                + "  |  Médicos activos: " + datos.size());
+            lblResumen.setText("  Total: " + total + " consultas  |  Medicos activos: " + datos.size());
             if (datos.isEmpty())
                 JOptionPane.showMessageDialog(dlg,
                     "No hay consultas en ese rango de fechas.",
                     "Sin resultados", JOptionPane.INFORMATION_MESSAGE);
         });
-
         dlg.setVisible(true);
     }
 
-    // ── Informe 3: Médico más Activo ──────────────────────────────
+    // ── Informe 3: Medico mas Activo ──────────────────────────────
     private void abrirMedicosMasActivos() {
-        JDialog dlg = new JDialog(this, "Ranking — Medicos mas Activos", true);
+        JDialog dlg = new JDialog(this, "Ranking \u2014 Medicos mas Activos", true);
         dlg.setSize(700, 450);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
@@ -290,23 +324,18 @@ public class MenuInformes extends JDialog {
         JPanel pnlTop = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         pnlTop.setBackground(new Color(240, 230, 255));
         pnlTop.setBorder(new EmptyBorder(5, 15, 5, 15));
-        JLabel lbl = new JLabel("Ranking de médicos según consultas realizadas");
+        JLabel lbl = new JLabel("Ranking de medicos segun consultas realizadas");
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lbl.setForeground(ACCENT3);
         pnlTop.add(lbl);
         dlg.add(pnlTop, BorderLayout.NORTH);
 
-        DefaultTableModel model = new DefaultTableModel(0, 4) {
+        DefaultTableModel model = new DefaultTableModel(0, 5) {
             public boolean isCellEditable(int r, int c) { return false; }
         };
         model.setColumnIdentifiers(new String[]{
-            "#", "Medico", "Especialidad", "Consultas", "Pacientes Atendidos"});
-        // Agregar columna de posicion
-        model.setColumnCount(5);
-        model.setColumnIdentifiers(new String[]{
             "Posicion", "Medico", "Especialidad",
             "Total Consultas", "Pacientes Atendidos"});
-
         JTable tabla = new JTable(model);
         tabla.setRowHeight(28);
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -320,12 +349,13 @@ public class MenuInformes extends JDialog {
         tabla.getColumnModel().getColumn(4).setPreferredWidth(130);
         dlg.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Cargar datos
         ArrayList<String[]> datos = dao.medicosMasActivos();
         int pos = 1;
         for (String[] row : datos) {
-            String medalla = pos == 1 ? "🥇 1°" : pos == 2 ? "🥈 2°" : pos == 3 ? "🥉 3°"
-                : pos + "°";
+            String medalla = pos == 1 ? "\uD83E\uDD47 1\u00B0"
+                           : pos == 2 ? "\uD83E\uDD48 2\u00B0"
+                           : pos == 3 ? "\uD83E\uDD49 3\u00B0"
+                           : pos + "\u00B0";
             model.addRow(new Object[]{medalla, row[0], row[1], row[2], row[3]});
             pos++;
         }
@@ -339,7 +369,7 @@ public class MenuInformes extends JDialog {
         dlg.setVisible(true);
     }
 
-    // ── Informe 4: Enfermedades más Diagnosticadas ────────────────
+    // ── Informe 4: Enfermedades mas Diagnosticadas ────────────────
     private void abrirEnfermedades() {
         JDialog dlg = new JDialog(this, "Enfermedades mas Diagnosticadas", true);
         dlg.setSize(650, 450);
@@ -360,7 +390,6 @@ public class MenuInformes extends JDialog {
         };
         model.setColumnIdentifiers(new String[]{
             "Posicion", "Enfermedad", "Gravedad", "Veces Diagnosticada"});
-
         JTable tabla = new JTable(model);
         tabla.setRowHeight(28);
         tabla.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -373,20 +402,20 @@ public class MenuInformes extends JDialog {
         tabla.getColumnModel().getColumn(3).setPreferredWidth(150);
         dlg.add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        // Cargar datos
         ArrayList<String[]> datos = dao.enfermedadesMasDiagnosticadas();
         int pos = 1;
         for (String[] row : datos) {
-            String posStr = pos == 1 ? "🥇 1°" : pos == 2 ? "🥈 2°"
-                : pos == 3 ? "🥉 3°" : pos + "°";
-            // Color por gravedad
+            String posStr = pos == 1 ? "\uD83E\uDD47 1\u00B0"
+                          : pos == 2 ? "\uD83E\uDD48 2\u00B0"
+                          : pos == 3 ? "\uD83E\uDD49 3\u00B0"
+                          : pos + "\u00B0";
             model.addRow(new Object[]{posStr, row[0], row[1], row[2]});
             pos++;
         }
 
         JPanel pnlBot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         pnlBot.setBackground(new Color(200, 220, 240));
-        JLabel lblTotal = new JLabel("Total enfermedades en catalogo: " + datos.size());
+        JLabel lblTotal = new JLabel("Enfermedades en catalogo: " + datos.size());
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTotal.setForeground(ACCENT4);
         pnlBot.add(lblTotal);
@@ -395,5 +424,9 @@ public class MenuInformes extends JDialog {
         pnlBot.add(btnCerrar);
         dlg.add(pnlBot, BorderLayout.SOUTH);
         dlg.setVisible(true);
+    }
+
+    private String nullSafe(String valor) {
+        return (valor != null && !valor.trim().isEmpty()) ? valor : "\u2014";
     }
 }

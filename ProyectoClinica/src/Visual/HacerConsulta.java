@@ -177,6 +177,9 @@ public class HacerConsulta extends JDialog {
         addLabel(pnlDatos, "Paciente:", 10, 98);
         txtCedulaPac = new JTextField();
         txtCedulaPac.setEditable(false);
+        // FIX: no permite seleccion ni muestra cursor de texto
+        txtCedulaPac.setFocusable(false);
+        txtCedulaPac.setCursor(java.awt.Cursor.getDefaultCursor());
         txtCedulaPac.setBackground(new Color(230, 240, 255));
         txtCedulaPac.setForeground(new Color(30, 60, 120));
         txtCedulaPac.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -592,35 +595,49 @@ public class HacerConsulta extends JDialog {
                 citaOrigen.getIdCita(), citaOrigen);
         }
 
-        limpiar();
-
-        // Construir resumen de enfermedades
+        // FIX: construir el resumen ANTES de limpiar para no perder los datos
         StringBuilder resEnf = new StringBuilder();
         if (enfermedadesSelected.isEmpty()) {
             resEnf.append("   (ninguna)");
         } else {
             for (Enfermedad ef : enfermedadesSelected)
-                resEnf.append("   • ").append(ef.getNombreEnfermedad()).append("\n");
+                resEnf.append("   \u2022 ").append(ef.getNombreEnfermedad()).append("\n");
         }
-        // Construir resumen de vacunas
         StringBuilder resVac = new StringBuilder();
         if (vacunasSelected.isEmpty()) {
             resVac.append("   (ninguna)");
         } else {
             for (Vacuna v : vacunasSelected)
-                resVac.append("   • ").append(v.getNombreVacuna()).append("\n");
+                resVac.append("   \u2022 ").append(v.getNombreVacuna()).append("\n");
         }
+        // FIX: guardar datos del resumen antes de limpiar
+        String nombreMedico   = medico   != null ? medico.getNombre()   : "";
+        String nombrePaciente = paciente != null ? paciente.getNombre() : "";
+        int totalEnf   = enfermedadesSelected.size();
+        int totalVac   = vacunasSelected.size();
+        int totalExam  = examenesOrdenados.size();
+        // FIX: formato de fecha legible
+        java.time.LocalDate fechaLocal = obtenerFecha().toInstant()
+            .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        String fechaStr = fechaLocal.getDayOfMonth() + " de "
+            + fechaLocal.getMonth().getDisplayName(
+                java.time.format.TextStyle.FULL,
+                new java.util.Locale("es", "ES"))
+            + " de " + fechaLocal.getYear();
+
+        // Ahora sí limpiar
+        limpiar();
 
         JOptionPane.showMessageDialog(this,
             "Consulta registrada correctamente\n\n"
-            + "Medico:   " + (medico != null ? medico.getNombre() : "") + "\n"
-            + "Paciente: " + (paciente != null ? paciente.getNombre() : "") + "\n"
-            + "Fecha:    " + obtenerFecha().toString() + "\n\n"
-            + "Enfermedades diagnosticadas (" + enfermedadesSelected.size() + "):\n"
+            + "Medico:   " + nombreMedico   + "\n"
+            + "Paciente: " + nombrePaciente + "\n"
+            + "Fecha:    " + fechaStr       + "\n\n"
+            + "Enfermedades diagnosticadas (" + totalEnf + "):\n"
             + resEnf.toString() + "\n"
-            + "Vacunas aplicadas (" + vacunasSelected.size() + "):\n"
+            + "Vacunas aplicadas (" + totalVac + "):\n"
             + resVac.toString() + "\n"
-            + "Examenes ordenados: " + examenesOrdenados.size(),
+            + "Examenes ordenados: " + totalExam,
             "Exito", JOptionPane.INFORMATION_MESSAGE);
     }
 

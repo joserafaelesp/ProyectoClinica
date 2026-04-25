@@ -23,6 +23,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import Logical.Clinica;
+import Logical.Medico;
 import Logical.Usuario;
 
 public class VerMisUsuarios extends JDialog {
@@ -146,14 +147,21 @@ public class VerMisUsuarios extends JDialog {
                         + selected.getIdUsuario() + "?",
                         "Confirmación", JOptionPane.YES_NO_OPTION);
                     if (conf == JOptionPane.YES_OPTION) {
-                        Clinica.getInstance().borrarUsuario(
-                            selected.getIdUsuario());
+                        // FIX: si es Médico, borrar también de PERSONA y MEDICO
+                        // (borrarMedico usa DELETE en PERSONA que hace CASCADE a MEDICO)
+                        if ("Medico".equals(selected.getRol())) {
+                            Medico medico = Clinica.getInstance()
+                                .obtenerMedicoById(selected.getIdUsuario());
+                            if (medico != null)
+                                Clinica.getInstance().borrarMedico(medico.getCedula());
+                        }
+                        Clinica.getInstance().borrarUsuario(selected.getIdUsuario());
                         cargarDatos();
                         resetSeleccion();
                         JOptionPane.showMessageDialog(null,
                             "Usuario eliminado correctamente",
                             "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    Clinica.getInstance().actualizarGeneradores();
+                        Clinica.getInstance().actualizarGeneradores();
                     }
                 }
             }

@@ -86,12 +86,7 @@ public class CrearUser extends JDialog {
         txtCodigo.setBounds(115, 60, 160, 28);
         panel.add(txtCodigo);
 
-        // Etiqueta descriptiva debajo del ID
-        JLabel lblIdNota = new JLabel("Generado automaticamente segun el rol");
-        lblIdNota.setFont(new Font("Segoe UI", Font.ITALIC, 10));
-        lblIdNota.setForeground(Color.GRAY);
-        lblIdNota.setBounds(115, 90, 240, 14);
-        panel.add(lblIdNota);
+
 
         // ── Username ─────────────────────────────────────────────
         JLabel lblUsername = new JLabel("Username:");
@@ -120,11 +115,6 @@ public class CrearUser extends JDialog {
         lblNotaMedico.setVisible(false);
         panel.add(lblNotaMedico);
 
-        JLabel lblNota = new JLabel(
-            "<html><i>El ID se asigna automáticamente por rol</i></html>");
-        lblNota.setForeground(Color.GRAY);
-        lblNota.setBounds(20, 205, 320, 14);
-        panel.add(lblNota);
 
         // ── Cargar si es modificación ─────────────────────────────
         // IMPORTANTE: cargar datos ANTES de agregar el ActionListener
@@ -188,9 +178,10 @@ public class CrearUser extends JDialog {
                 } else if (rol.equals("Medico")) {
                     // ── MÉDICO: paso 1 guardar en USUARIO ────────
                     Clinica.getInstance().agregarUsuario(userObj);
-                    // Sincronizar ID de medico con el usuario recien creado
-                    Clinica.generadorCodigoidMedico =
-                        Clinica.getInstance().obtenerMaxUsuarioPorPrefijo("MED-");
+                    // FIX: se pasa el mismo 'id' a preseleccionarMedico para que
+                    // Id_Medico e Id_Usuario sean exactamente el mismo valor (ej. MED-6)
+                    // NO se modifica generadorCodigoidMedico aqui — RegistrarGeneral
+                    // usará el id recibido directamente en lugar del generador
 
                     JOptionPane.showMessageDialog(null,
                         "Credenciales creadas (ID: " + id + ").\n"
@@ -199,7 +190,7 @@ public class CrearUser extends JDialog {
 
                     RegistrarGeneral regMedico = new RegistrarGeneral(null, 0);
                     regMedico.setModal(true);
-                    regMedico.preseleccionarMedico(id);
+                    regMedico.preseleccionarMedico(id);  // 'id' = "MED-N" recién creado
 
                     // Interceptar cierre para verificar que completó el paso 2
                     regMedico.addWindowListener(new WindowAdapter() {

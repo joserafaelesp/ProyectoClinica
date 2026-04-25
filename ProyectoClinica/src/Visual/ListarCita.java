@@ -143,6 +143,8 @@ public class ListarCita extends JDialog {
 
         btnModificar = new JButton("Modificar");
         btnModificar.setEnabled(false);
+        // FIX: el médico no puede modificar ni borrar citas, solo completarlas
+        btnModificar.setVisible(usuarioActual == null || !usuarioActual.esMedico());
         btnModificar.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (selected != null) {
@@ -159,6 +161,8 @@ public class ListarCita extends JDialog {
 
         btnBorrar = new JButton("Borrar");
         btnBorrar.setEnabled(false);
+        // FIX: el médico no puede borrar citas
+        btnBorrar.setVisible(usuarioActual == null || !usuarioActual.esMedico());
         btnBorrar.setBackground(new Color(200, 60, 60));
         btnBorrar.setForeground(Color.WHITE);
         btnBorrar.setFocusPainted(false);

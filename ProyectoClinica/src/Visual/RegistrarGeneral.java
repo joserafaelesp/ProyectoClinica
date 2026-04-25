@@ -33,6 +33,11 @@ public class RegistrarGeneral extends JDialog {
     private JComboBox<String> comboBoxGender;
     private boolean           esModificacion = false;
 
+    // FIX: flag que indica si fue abierto desde CrearUser (paso 2 médico)
+    // En ese caso, al registrar se cierra en lugar de limpiar el formulario
+    private boolean modoPaso2Medico = false;
+    private String  idUsuarioVinculado = null;  // FIX: guarda el idUsuario del paso 1
+
     private static final String[] TIPOS_SANGRE =
         {"(seleccionar)", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
 
@@ -43,7 +48,16 @@ public class RegistrarGeneral extends JDialog {
         miPersona      = person;
         esModificacion = (person != null);
 
-        setTitle(esModificacion ? "Modificar Persona" : "Registrar Persona");
+        // FIX: título dinámico según si es Médico, Paciente o nuevo registro
+        String tituloVentana;
+        if (!esModificacion) {
+            tituloVentana = "Registrar Persona";
+        } else if (person instanceof Medico) {
+            tituloVentana = "Modificar Medico";
+        } else {
+            tituloVentana = "Modificar Paciente";
+        }
+        setTitle(tituloVentana);
         setBounds(100, 100, 710, 450);
         setResizable(false);
         getContentPane().setLayout(new BorderLayout());
@@ -138,7 +152,7 @@ public class RegistrarGeneral extends JDialog {
         btnSelViv.addActionListener(e -> abrirSelectorVivienda());
         panel_DG.add(btnSelViv);
 
-        // Rol — solo Paciente/Medico
+        // Rol — Paciente / Medico
         JLabel lblRol = new JLabel("Rol:");
         lblRol.setBounds(255, 105, 30, 14);
         panel_DG.add(lblRol);
@@ -268,9 +282,13 @@ public class RegistrarGeneral extends JDialog {
                                 "Error", JOptionPane.ERROR_MESSAGE);
                             return;
                         }
-                        Clinica.getInstance().agregarMedico(new Medico(
+                        // FIX: se asigna idUsuario para guardarlo en BD
+                        Medico nuevoMedico = new Medico(
                             cedula, nombre, genero, fechaLocal, telefono,
-                            nuevaViv, txtCodeMed.getText(), esp));
+                            nuevaViv, txtCodeMed.getText(), esp);
+                        nuevoMedico.setIdUsuario(idUsuarioVinculado);
+                        Clinica.getInstance().agregarMedico(nuevoMedico);
+
                     } else if (rdbtnPaciente.isSelected()) {
                         String sangre = (String) comboTipoSangre.getSelectedItem();
                         if (sangre.equals("(seleccionar)")) sangre = null;
@@ -278,17 +296,30 @@ public class RegistrarGeneral extends JDialog {
                             cedula, nombre, genero, fechaLocal, telefono,
                             nuevaViv, textCodigoPaciente.getText(),
                             textFieldInfoEmergencia.getText(), sangre));
+
                     } else {
                         JOptionPane.showMessageDialog(null,
                             "Seleccione un rol (Medico o Paciente)",
                             "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
-                    clean();
+
                     JOptionPane.showMessageDialog(null,
                         "Registrado correctamente", "Exito",
                         JOptionPane.INFORMATION_MESSAGE);
+
+                    // FIX: si fue abierto como paso 2 desde CrearUser (médico),
+                    // se cierra la ventana al registrar para evitar registros dobles.
+                    // Si fue abierto desde el menú normal, limpia el formulario
+                    // para permitir registrar otra persona.
+                    if (modoPaso2Medico) {
+                        dispose();
+                    } else {
+                        clean();
+                    }
+
                 } else {
+                    // Modificación
                     miPersona.setNombre(nombre);
                     miPersona.setGenero(genero);
                     miPersona.setTelefono(telefono);
@@ -420,13 +451,19 @@ public class RegistrarGeneral extends JDialog {
         }
     }
 
+    // FIX: ahora oculta el radio de Paciente completamente y activa modoPaso2Medico
+    // para que al registrar se cierre la ventana en lugar de limpiar el formulario
     public void preseleccionarMedico(String idUsuario) {
+        modoPaso2Medico = true;
+        idUsuarioVinculado = idUsuario;    // FIX: guardar para usarlo al crear el Medico
         rdbtnMedico.setVisible(true);
         rdbtnMedico.setSelected(true);
         rdbtnPaciente.setSelected(false);
+        rdbtnPaciente.setVisible(false);  // ← FIX: oculta el radio Paciente
         panel_Medico.setVisible(true);
         panel_Paciente.setVisible(false);
-        txtCodeMed.setText("MED-" + Clinica.generadorCodigoidMedico);
+        // FIX: usar el id recibido directamente — es el mismo que se guardó en USUARIO
+        txtCodeMed.setText(idUsuario);
     }
 
     public void clean() {
