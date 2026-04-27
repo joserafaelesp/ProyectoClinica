@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public class MedicoDAO extends BaseDAO {
 
     public boolean insertar(Medico m) {
-        // FIX: try-with-resources garantiza que la conexión siempre se cierre
+        // FIX: try-with-resources garantiza que la conexiÃ³n siempre se cierre
         try (Connection con = getConexion()) {
             if (con == null) return false;
             con.setAutoCommit(false);
